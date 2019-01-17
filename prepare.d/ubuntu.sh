@@ -6,7 +6,7 @@ source functions.sh
 
 current_year=$(date +%y)
 iso_urls=()
-iso_regex='ubuntu-([0-9.]+)-([a-z-]+)-(amd64).iso$'
+iso_regex='ubuntu-([0-9.]+)-([a-z-]+)-(amd64|i386).iso$'
 
 for (( year = current_year; year >= 12; year-- )); do
 	for ver in "${year}.10" "${year}.04"; do
