@@ -1,0 +1,12 @@
+PXE_LOCAL_ROOT=/ztank/data/pxe
+PXE_NFS_HOST=192.168.89.10
+PXE_NFS_ROOT=/ztank/data/pxe
+PXE_HTTP_ROOT=http://192.168.89.10/pxe
+PXE_GRUB_DIR=/srv/tftp/grub
+
+UBUNTU_LOCAL_ROOT="$PXE_LOCAL_ROOT/ubuntu"
+UBUNTU_MIRROR=http://mirrors.ustc.edu.cn/ubuntu
+UBUNTU_RELEASES_MIRROR=http://mirrors.ustc.edu.cn/ubuntu-releases
+
+ARCHLINUX_LOCAL_ROOT="$PXE_LOCAL_ROOT/archlinux"
+ARCHLINUX_MIRROR=http://mirrors.ustc.edu.cn/archlinux

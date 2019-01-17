@@ -1,0 +1,26 @@
+#!/bin/bash
+
+set -e
+source config
+source functions.sh
+export $(grep -Po "^[A-Z_]+(?==)" config)
+set +e
+
+for script in prepare.d/*.sh; do
+	bash "$script"
+done
+echo "Prepare OK"
+
+set -e
+
+tmpfile=$(mktemp)
+trap "rm -f $tmpfile" EXIT
+
+for script in menu.d/*.sh; do
+	bash "$script" >> "$tmpfile"
+done
+
+mv "$tmpfile" "$PXE_GRUB_DIR/grub.cfg"
+echo "Menu OK"
+
+# vim: set ts=4 sw=4 sts=4 noexpandtab nosta:
