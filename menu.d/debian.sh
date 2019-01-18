@@ -19,7 +19,9 @@ while read version; do
 
 		cat <<-EOF
         menuentry 'Debian ${info[0]} (${info[1]}, ${info[2]})' {
+            echo 'Loading kernel...'
             linux $(url2grub $vmlinuz_url) boot=live components netboot=nfs nfsroot=$PXE_NFS_HOST:$PXE_NFS_ROOT/$thisroot/ locale=zh_CN
+            echo 'Loading initial ramdisk...'
             initrd $(url2grub $initrd_url)
         }
 		EOF

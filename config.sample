@@ -10,3 +10,6 @@ UBUNTU_RELEASES_MIRROR=http://mirrors.ustc.edu.cn/ubuntu-releases
 
 ARCHLINUX_LOCAL_ROOT="$PXE_LOCAL_ROOT/archlinux"
 ARCHLINUX_MIRROR=http://mirrors.ustc.edu.cn/archlinux
+
+DEBIAN_LOCAL_ROOT="$PXE_LOCAL_ROOT/debian"
+DEBIAN_CD_MIRROR=http://mirrors.ustc.edu.cn/debian-cd

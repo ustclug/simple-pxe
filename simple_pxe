@@ -20,6 +20,7 @@ for script in menu.d/*.sh; do
 	bash "$script" >> "$tmpfile"
 done
 
+chmod 644 "$tmpfile"
 mv "$tmpfile" "$PXE_GRUB_DIR/grub.cfg"
 echo "Menu OK"
 

@@ -14,7 +14,9 @@ while read version; do
 
 	cat <<-EOF
     menuentry 'Arch Linux ($version)' {
+        echo 'Loading kernel...'
         linux $(url2grub $vmlinuz_url) ip=dhcp archisobasedir=arch archiso_nfs_srv=$PXE_NFS_HOST:$PXE_NFS_ROOT/$thisroot
+        echo 'Loading initial ramdisk...'
         initrd $(url2grub $initrd_url) $(url2grub $amd_ucode_url) $(url2grub $intel_ucode_url)
     }
 	EOF

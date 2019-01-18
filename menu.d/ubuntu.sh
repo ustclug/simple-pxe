@@ -19,10 +19,12 @@ while read folder; do
 	initrd_url="$PXE_HTTP_ROOT/$thisroot/$initrd_path"
 
 	cat <<-EOF
-	menuentry 'Ubuntu ${info[0]} ${info[1]} (${info[2]})' {
-		linux $(url2grub $vmlinuz_url) boot=casper netboot=nfs nfsroot=$PXE_NFS_HOST:$PXE_NFS_ROOT/$thisroot/ locale=zh_CN toram
-		initrd $(url2grub $initrd_url)
-	}
+    menuentry 'Ubuntu ${info[0]} ${info[1]} (${info[2]})' {
+        echo 'Loading kernel...'
+        linux $(url2grub $vmlinuz_url) boot=casper netboot=nfs nfsroot=$PXE_NFS_HOST:$PXE_NFS_ROOT/$thisroot/ locale=zh_CN toram
+        echo 'Loading initial ramdisk...'
+        initrd $(url2grub $initrd_url)
+    }
 	EOF
 done < <(find "$version"* -maxdepth 2 -mindepth 2 -not -path '*/\.*' | sort -r)
 
@@ -31,10 +33,12 @@ if [[ -n "$UBUNTU_MIRROR" && -n "$codename" ]]; then
 		vmlinuz_url="$UBUNTU_MIRROR/dists/$codename/main/installer-$arch/current/images/netboot/ubuntu-installer/amd64/linux"
 		initrd_url="$UBUNTU_MIRROR/dists/$codename/main/installer-$arch/current/images/netboot/ubuntu-installer/amd64/initrd.gz"
 		cat <<-EOF
-	menuentry 'Ubuntu $version Installer ($arch)' {
-		linux $(url2grub $vmlinuz_url)
-		initrd $(url2grub $initrd_url)
-	}
+    menuentry 'Ubuntu $version Installer ($arch)' {
+        echo 'Loading kernel...'
+        linux $(url2grub $vmlinuz_url)
+        echo 'Loading initial ramdisk...'
+        initrd $(url2grub $initrd_url)
+    }
 		EOF
 	done
 fi
