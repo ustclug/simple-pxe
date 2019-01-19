@@ -8,7 +8,9 @@ do_prepare() {
 	set +e
 
 	for item in ${PXE_ROOT_MENUS[@]}; do
-		bash "prepare.d/${item}.sh"
+		if [[ -f "prepare.d/${item}.sh" ]]; then
+			bash "prepare.d/${item}.sh"
+		fi
 	done
 
 	echo "Prepare OK"
