@@ -28,8 +28,11 @@ net_extract() {
 	trap "rm -rf $tmpdir/" EXIT RETURN
 
 	curl -fsL "$url" | bsdtar -x -f - -C "$tmpdir"
-	if [[ "${PIPESTATUS[0]}" == 0 ]]; then
+	if [[ "${PIPESTATUS[0]}" == 0 && "$?" == 0 ]]; then
+		chmod 755 "$tmpdir"
 		mv "$tmpdir" "$target"
+	else
+		echo "Download failed"
 	fi
 }
 

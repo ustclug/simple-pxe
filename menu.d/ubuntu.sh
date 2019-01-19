@@ -75,9 +75,9 @@ while read folder; do
 	if [ "\$SP_UBUNTU_ARCH" = "$arch" ]; then
 	menuentry 'Ubuntu $version ($codename) $variant LiveCD' {
 	  echo 'Loading kernel...'
-	  linux $wwwroot/casper/$kernel_file boot=casper netboot=nfs nfsroot=$PXE_NFS_HOST:$PXE_NFS_ROOT/$relpath/ locale=zh_CN \${SP_UBUNTU_ROOTFS}
+	  linux $wwwroot/casper/$kernel boot=casper netboot=nfs nfsroot=$PXE_NFS_HOST:$PXE_NFS_ROOT/$relpath/ locale=zh_CN \${SP_UBUNTU_ROOTFS}
 	  echo 'Loading initial ramdisk...'
-	  initrd $wwwroot/casper/$initrd_file
+	  initrd $wwwroot/casper/$initrd
 	}
 	fi
 	EOF
