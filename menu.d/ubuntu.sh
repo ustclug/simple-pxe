@@ -1,50 +1,51 @@
 #!/bin/bash
+#menu: Ubuntu
 
 source functions.sh
 
-echo "submenu 'Ubuntu' {"
-
 cd $UBUNTU_LOCAL_ROOT
-ls | grep -Po '^\d+.\d+' | sort -ru | while read version; do
-echo "submenu 'Ubuntu $version' {"
+while read version; do
+	echo "submenu 'Ubuntu $version' {"
 
-while read folder; do
-	IFS='/' read -r -a info <<< "$folder"
-	thisroot=$(realpath --relative-to="$PXE_LOCAL_ROOT" "$folder")
-	codename=$(readlink $folder/dists/stable)
+	while read folder; do
+		if [[ ! -d "$folder/casper" ]]; then
+			continue
+		fi
 
-	vmlinuz_path=$(grep -Pom1 '^\s*linux\s*\K\S+' $folder/boot/grub/grub.cfg)
-	vmlinuz_url="$PXE_HTTP_ROOT/$thisroot/$vmlinuz_path"
-	initrd_path=$(grep -Pom1 '^\s*initrd\s*\K\S+' $folder/boot/grub/grub.cfg)
-	initrd_url="$PXE_HTTP_ROOT/$thisroot/$initrd_path"
+		IFS='/' read -r -a info <<< "$folder"
 
-	cat <<-EOF
-    menuentry 'Ubuntu ${info[0]} ${info[1]} (${info[2]})' {
-        echo 'Loading kernel...'
-        linux $(url2grub $vmlinuz_url) boot=casper netboot=nfs nfsroot=$PXE_NFS_HOST:$PXE_NFS_ROOT/$thisroot/ locale=zh_CN toram
-        echo 'Loading initial ramdisk...'
-        initrd $(url2grub $initrd_url)
-    }
-	EOF
-done < <(find "$version"* -maxdepth 2 -mindepth 2 -not -path '*/\.*' | sort -r)
+		relpath=$(realpath --relative-to="$PXE_LOCAL_ROOT" "$folder")
+		wwwroot=$(url2grub "$PXE_HTTP_ROOT/$relpath")
 
-if [[ -n "$UBUNTU_MIRROR" && -n "$codename" ]]; then
-	for arch in amd64 i386; do
-		vmlinuz_url="$UBUNTU_MIRROR/dists/$codename/main/installer-$arch/current/images/netboot/ubuntu-installer/amd64/linux"
-		initrd_url="$UBUNTU_MIRROR/dists/$codename/main/installer-$arch/current/images/netboot/ubuntu-installer/amd64/initrd.gz"
+		codename=$(readlink $folder/dists/stable)
+		initrd_file=$(ls "$folder/casper/" | grep -Pom1 '^initrd(\.\w+)?$')
+		kernel_file=$(ls "$folder/casper/" | grep -Pom1 '^vmlinuz(\.\w+)?$')
+
 		cat <<-EOF
-    menuentry 'Ubuntu $version Installer ($arch)' {
-        echo 'Loading kernel...'
-        linux $(url2grub $vmlinuz_url)
-        echo 'Loading initial ramdisk...'
-        initrd $(url2grub $initrd_url)
-    }
+		  menuentry 'Ubuntu ${info[0]} ${info[1]} (${info[2]})' {
+		    echo 'Loading kernel...'
+		    linux $wwwroot/casper/$kernel_file boot=casper netboot=nfs nfsroot=$PXE_NFS_HOST:$PXE_NFS_ROOT/$relpath/ locale=zh_CN toram
+		    echo 'Loading initial ramdisk...'
+		    initrd $wwwroot/casper/$initrd_file
+		  }
 		EOF
-	done
-fi
+	done < <(find "$version"* -maxdepth 2 -mindepth 2 -not -path '*/\.*' | sort -r)
 
-echo "}"
-done
+	if [[ -n "$UBUNTU_MIRROR" && -n "$codename" ]]; then
+		for arch in amd64 i386; do
+			base_url=$(url2grub "$UBUNTU_MIRROR/dists/$codename/main/installer-$arch/current/images/netboot/ubuntu-installer/$arch")
+			cat <<-EOF
+			  menuentry 'Ubuntu $version Installer ($arch)' {
+			    echo 'Loading kernel...'
+			    linux ${base_url}/linux
+			    echo 'Loading initial ramdisk...'
+			    initrd ${base_url}/initrd.gz
+			  }
+			EOF
+		done
+	fi
 
-echo "}"
+	echo "}"
+done < <(ls | grep -Po '^\d+.\d+' | sort -ru)
+
 # vim: set ts=4 sw=4 sts=4 noexpandtab nosta:

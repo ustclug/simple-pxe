@@ -1,35 +1,45 @@
 #!/bin/bash
+#menu: Debian
 
 source functions.sh
 
-echo "submenu 'Debian' {"
+DEBIAN_MIRROR=${DEBIAN_MIRROR:-http://deb.debian.org/debian}
 
-cd $DEBIAN_LOCAL_ROOT
-while read version; do
-	echo "submenu 'Debian $version' {"
+cat <<-EOF
+if [ -z "\$SP_DEBIAN_ARCH" ]; then
+  if [ \$grub_cpu = "x86_64" ]; then
+    set SP_DEBIAN_ARCH='amd64'
+  else
+    set SP_DEBIAN_ARCH='i386'
+  fi
+fi
+EOF
 
-	while read folder; do
-		IFS='/' read -r -a info <<< "$folder"
-		thisroot=$(realpath --relative-to="$PXE_LOCAL_ROOT" "$folder")
+fmt="$(url2grub $DEBIAN_MIRROR)/dists/%s/main/installer-\${SP_DEBIAN_ARCH}/current/images/netboot/debian-installer/\${SP_DEBIAN_ARCH}"
+for version in stable testing unstable oldstable oldoldstable; do
+	cat <<-EOF
+	menuentry 'Debian $version installer' {
+	  echo 'Loading kernel...'
+	  linux $(printf "$fmt" $version)/linux
+	  echo 'Loading initial ramdisk...'
+	  initrd $(printf "$fmt" $version)/initrd.gz
+	}
+	EOF
+done
 
-		vmlinuz_path=$(grep -Pom1 '^\s*linux\s*\K\S+' $folder/boot/grub/grub.cfg)
-		vmlinuz_url="$PXE_HTTP_ROOT/$thisroot/$vmlinuz_path"
-		initrd_path=$(grep -Pom1 '^\s*initrd\s*\K\S+' $folder/boot/grub/grub.cfg)
-		initrd_url="$PXE_HTTP_ROOT/$thisroot/$initrd_path"
+cat <<-EOF
+submenu "> Architecture (current=\$SP_DEBIAN_ARCH)" {
+  menuentry 'amd64: For most modern PCs' {
+    set SP_DEBIAN_ARCH='amd64'
+    export SP_DEBIAN_ARCH
+    configfile $PXE_MENU_URL
+  }
+  menuentry 'i386: For very old PCs' {
+    set SP_DEBIAN_ARCH='i386'
+    export SP_DEBIAN_ARCH
+    configfile $PXE_MENU_URL
+  }
+}
+EOF
 
-		cat <<-EOF
-        menuentry 'Debian ${info[0]} (${info[1]}, ${info[2]})' {
-            echo 'Loading kernel...'
-            linux $(url2grub $vmlinuz_url) boot=live components netboot=nfs nfsroot=$PXE_NFS_HOST:$PXE_NFS_ROOT/$thisroot/ locale=zh_CN
-            echo 'Loading initial ramdisk...'
-            initrd $(url2grub $initrd_url)
-        }
-		EOF
-
-	done < <(find "$version" -maxdepth 2 -mindepth 2 -not -path '*/\.*' | sort -r)
-
-	echo "}"
-done < <(ls | sort -ru)
-
-echo "}"
 # vim: set ts=4 sw=4 sts=4 noexpandtab nosta:

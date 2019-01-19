@@ -1,8 +1,7 @@
 #!/bin/bash
+#menu: Arch Linux
 
 source functions.sh
-
-echo "submenu 'Arch Linux' {"
 
 cd $ARCHLINUX_LOCAL_ROOT
 while read version; do
@@ -13,14 +12,13 @@ while read version; do
 	intel_ucode_url="$PXE_HTTP_ROOT/$thisroot/arch/boot/intel_ucode.img"
 
 	cat <<-EOF
-    menuentry 'Arch Linux ($version)' {
-        echo 'Loading kernel...'
-        linux $(url2grub $vmlinuz_url) ip=dhcp archisobasedir=arch archiso_nfs_srv=$PXE_NFS_HOST:$PXE_NFS_ROOT/$thisroot
-        echo 'Loading initial ramdisk...'
-        initrd $(url2grub $initrd_url) $(url2grub $amd_ucode_url) $(url2grub $intel_ucode_url)
-    }
+	menuentry 'Arch Linux ($version)' {
+	  echo 'Loading kernel...'
+	  linux $(url2grub $vmlinuz_url) ip=dhcp archisobasedir=arch archiso_nfs_srv=$PXE_NFS_HOST:$PXE_NFS_ROOT/$thisroot
+	  echo 'Loading initial ramdisk...'
+	  initrd $(url2grub $initrd_url) $(url2grub $amd_ucode_url) $(url2grub $intel_ucode_url)
+	}
 	EOF
-done < <(ls | sort)
+done < <(ls | sort -ru)
 
-echo "}"
 # vim: set ts=4 sw=4 sts=4 noexpandtab nosta:

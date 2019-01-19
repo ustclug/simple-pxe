@@ -1,27 +1,81 @@
 #!/bin/bash
 
-set -e
 source config
 source functions.sh
 export $(grep -Po "^[A-Z_]+(?==)" config)
-set +e
 
-for script in prepare.d/*.sh; do
-	bash "$script"
-done
-echo "Prepare OK"
+do_prepare() {
+	set +e
 
-set -e
+	for item in ${PXE_ROOT_MENUS[@]}; do
+		bash "prepare.d/${item}.sh"
+	done
 
-tmpfile=$(mktemp)
-trap "rm -f $tmpfile" EXIT
+	echo "Prepare OK"
+}
 
-for script in menu.d/*.sh; do
-	bash "$script" >> "$tmpfile"
-done
+do_menu() {
+	set -e
 
-chmod 644 "$tmpfile"
-mv "$tmpfile" "$PXE_GRUB_DIR/grub.cfg"
-echo "Menu OK"
+	menu_dir="${PXE_LOCAL_ROOT}/menu"
+	menu_url=$(url2grub "${PXE_HTTP_ROOT}/menu")
+	mkdir -p "${menu_dir}"
+
+	menu_root="${menu_dir}/root.menu"
+	menu_root_tmp=$(mktemp)
+	trap "rm -f ${menu_root_tmp}" EXIT
+
+	for item in ${PXE_ROOT_MENUS[@]}; do
+		menu_item="${menu_dir}/${item}.menu"
+		menu_item_tmp=$(mktemp)
+		trap "rm -f ${menu_item_tmp}" EXIT
+
+		title="$(grep -Pom1 '^#menu:\s*\K.+$' "menu.d/${item}.sh" || true)"
+		title="${title:-$item}"
+
+		echo "Generating menu item '$title'..."
+
+		cat >> "${menu_item_tmp}" <<-EOF
+		menuentry '..' {
+		  configfile "$menu_url/root.menu"
+		}
+		EOF
+
+		export PXE_MENU_URL="$menu_url/$item.menu"
+		bash "menu.d/${item}.sh" >> "${menu_item_tmp}"
+		if [ "$?" -ne 0 ]; then
+			echo "${item}: failed to generate menu"
+			rm -f "${menu_item_tmp}"
+		fi
+
+		chmod 644 "${menu_item_tmp}"
+		mv "${menu_item_tmp}" "${menu_item}"
+
+		cat >> "${menu_root_tmp}" <<-EOF
+		menuentry '$title' {
+		  configfile "$PXE_MENU_URL"
+		}
+		EOF
+	done
+
+	chmod 644 "${menu_root_tmp}"
+	mv "${menu_root_tmp}" "${menu_root}"
+}
+
+# main {{{
+readonly ACTION="${1:-menu}"
+
+case "$ACTION" in
+    prepare)
+        do_prepare
+        ;;
+    menu)
+		do_menu
+        ;;
+    *)
+        panick "Unknown action: $ACTION"
+esac
+# }}}
+
 
 # vim: set ts=4 sw=4 sts=4 noexpandtab nosta:
