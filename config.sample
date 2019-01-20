@@ -1,4 +1,4 @@
-PXE_ROOT_MENUS=(archlinux ubuntu debian clonezilla)
+PXE_ROOT_MENUS=(archlinux ubuntu debian clonezilla gparted)
 PXE_LOCAL_ROOT=/ztank/data/pxe
 PXE_HTTP_ROOT=http://192.168.89.10/pxe
 PXE_NFS_HOST=192.168.89.10
@@ -16,3 +16,4 @@ DEBIAN_CD_MIRROR=http://mirrors.ustc.edu.cn/debian-cd
 DEBIAN_MIRROR=http://mirrors.ustc.edu.cn/debian
 
 CLONEZILLA_LOCAL_ROOT="$PXE_LOCAL_ROOT/clonezilla"
+GPARTED_LOCAL_ROOT="$PXE_LOCAL_ROOT/gparted"
