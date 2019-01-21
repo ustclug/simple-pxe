@@ -3,7 +3,7 @@
 set -e
 source functions.sh
 
-workdir="$TOOL_LOCAL_ROOT/memtest/"
+workdir="$TOOL_LOCAL_ROOT/memtest"
 mkdir -p "$workdir"
 
 # Memtest86+, FOSS, but not UEFI-compatible
