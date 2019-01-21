@@ -7,7 +7,7 @@ export $(grep -Po "^[A-Z_]+(?==)" config)
 do_prepare() {
 	set +e
 
-	for item in ${PXE_ROOT_MENUS[@]}; do
+	for item in ${PXE_PREPARE[@]}; do
 		if [[ -f "prepare.d/${item}.sh" ]]; then
 			bash "prepare.d/${item}.sh"
 		fi
@@ -27,7 +27,7 @@ do_menu() {
 	menu_root_tmp=$(mktemp)
 	trap "rm -f ${menu_root_tmp}" EXIT
 
-	for item in ${PXE_ROOT_MENUS[@]}; do
+	for item in ${PXE_MENUS[@]}; do
 		menu_item="${menu_dir}/${item}.menu"
 		menu_item_tmp=$(mktemp)
 		trap "rm -f ${menu_item_tmp}" EXIT
@@ -59,6 +59,12 @@ do_menu() {
 		}
 		EOF
 	done
+
+	cat >> "${menu_root_tmp}" <<-EOF
+	menuentry 'Reboot' {
+	  reboot
+	}
+	EOF
 
 	chmod 644 "${menu_root_tmp}"
 	mv "${menu_root_tmp}" "${menu_root}"

@@ -30,9 +30,11 @@ net_extract() {
 	curl -fsL "$url" | bsdtar -x -f - -C "$tmpdir"
 	if [[ "${PIPESTATUS[0]}" == 0 && "$?" == 0 ]]; then
 		chmod 755 "$tmpdir"
+		[[ -d "$target" ]] && mv "$target" "$target.bak"
 		mv "$tmpdir" "$target"
 	else
 		echo "Download failed"
+		return 1
 	fi
 }
 
