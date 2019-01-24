@@ -6,18 +6,10 @@ PXE_HTTP_ROOT=http://192.168.89.10/pxe
 PXE_NFS_HOST=192.168.89.10
 PXE_NFS_ROOT=/ztank/data/pxe
 
-UBUNTU_LOCAL_ROOT="$PXE_LOCAL_ROOT/ubuntu"
 UBUNTU_MIRROR=http://mirrors.ustc.edu.cn/ubuntu
 UBUNTU_RELEASES_MIRROR=http://mirrors.ustc.edu.cn/ubuntu-releases
 
-ARCHLINUX_LOCAL_ROOT="$PXE_LOCAL_ROOT/archlinux"
 ARCHLINUX_MIRROR=http://mirrors.ustc.edu.cn/archlinux
 
-DEBIAN_LOCAL_ROOT="$PXE_LOCAL_ROOT/debian"
 DEBIAN_CD_MIRROR=http://mirrors.ustc.edu.cn/debian-cd
 DEBIAN_MIRROR=http://mirrors.ustc.edu.cn/debian
-
-CLONEZILLA_LOCAL_ROOT="$PXE_LOCAL_ROOT/clonezilla"
-GPARTED_LOCAL_ROOT="$PXE_LOCAL_ROOT/gparted"
-
-TOOL_LOCAL_ROOT="$PXE_LOCAL_ROOT/tool"

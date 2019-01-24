@@ -1,9 +1,19 @@
 #!/bin/bash
 
+declare -Ag temp
+cleanup_temp() {
+	for key in "${!temp[@]}"; do
+		echo "Clean up: ${temp[$key]}"
+		rm -rf -- "${temp[$key]}"
+	done
+}
+trap 'cleanup_temp' EXIT
+
+
 panick () {
     local mesg=$1; shift
     local str=$(printf "==> ERROR: ${mesg}\n" "$@")
-    log "$str"; echo $str >&2
+	echo "$str" >&2
     exit 1
 }
 
@@ -21,19 +31,21 @@ url2grub() {
 net_extract() {
 	local url="$1"
 	local target="$2"
-
-	local workdir=$(dirname "$target")
+	local workdir=$(dirname "${target}")
 	mkdir -p "$workdir"
-	local tmpdir=$(mktemp -d -p "$workdir" .tmp.XXXXXXXX)
-	trap "rm -rf $tmpdir/" EXIT RETURN
 
-	curl -fsL "$url" | bsdtar -x -f - -C "$tmpdir"
+	id="net_extract_${RANDOM}"
+	temp[$id]=$(mktemp -d -p "${workdir}" .tmp.XXXXXXXX) || return -1
+
+	curl -fsL "${url}" | bsdtar -x -f - -C "${temp[$id]}"
+
 	if [[ "${PIPESTATUS[0]}" == 0 && "$?" == 0 ]]; then
-		chmod 755 "$tmpdir"
+		chmod 755 "${temp[$id]}"
 		[[ -d "$target" ]] && mv "$target" "$target.bak"
-		mv "$tmpdir" "$target"
+		mv "${temp[$id]}" "$target"
 	else
 		echo "Download failed"
+		rm -rf "${temp[$id]}"
 		return 1
 	fi
 }
@@ -46,28 +58,28 @@ grep_web() {
 	local url="$1"
 	local regex="$2"
 	curl -fsL "$url" | grep -Po "$regex" | sort -ur
-}
-
-get_ubuntu_releases() {
-	local mirror regex
-	mirror=${UBUNTU_RELEASES_MIRROR:-http://releases.ubuntu.com/}
-	regex="Ubuntu ([0-9]{2}\.[0-9]{2})(\.[0-9]+)? (LTS )?\(([A-Z][a-z]+) [A-Z][a-z]+\)" 
-	while read line; do
-		if [[ "$line" =~ $regex ]]; then
-			version="${BASH_REMATCH[1]}"
-			full_version="$version${BASH_REMATCH[2]}"
-			[[ "${BASH_REMATCH[3]}" != "LTS " ]]
-			support=$?
-			codename="${BASH_REMATCH[4],,}"
-			echo -e "$version\t$full_version\t$support\t$codename"
-		fi
-	done < <(curl -sL "$mirror/HEADER.html") | sort -ur
+	[[ "${PIPESTATUS[0]}" == 0 ]]
 }
 
 grub_menu_sep() {
 	cat <<-EOF
 	menuentry '$1' {
 	    true
+	}
+	EOF
+}
+
+grub_linux_entry() {
+	local title="$1"
+	local kernel="$2"
+	local initrd="$3"
+	local param="$4"
+	cat <<-EOF
+	menuentry '$title' {
+	  echo 'Loading kernel...'
+	  linux $kernel $param
+	  echo 'Loading initial ramdisk...'
+	  initrd $initrd
 	}
 	EOF
 }

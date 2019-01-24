@@ -1,7 +1,9 @@
 #!/bin/bash
 #menu: Debian
+#root: debian
 
 source functions.sh
+cd "$LOCAL_PATH"
 
 cat <<-EOF
 if [ -z "\$SP_DEBIAN_ARCH" ]; then
@@ -27,15 +29,11 @@ submenu "[option] Architecture = \$SP_DEBIAN_ARCH" {
 EOF
 
 fmt="$(url2grub $DEBIAN_MIRROR)/dists/%s/main/installer-\${SP_DEBIAN_ARCH}/current/images/netboot/debian-installer/\${SP_DEBIAN_ARCH}"
-for version in stable testing unstable oldstable oldoldstable; do
-	cat <<-EOF
-	menuentry 'Debian $version installer' {
-	  echo 'Loading kernel...'
-	  linux $(printf "$fmt" $version)/linux
-	  echo 'Loading initial ramdisk...'
-	  initrd $(printf "$fmt" $version)/initrd.gz
-	}
-	EOF
-done
+while read codename status version; do
+	grub_linux_entry \
+		"Debian ${codename} (${status}) Installer" \
+		"$(printf "$fmt" $version)/linux" \
+		"$(printf "$fmt" $version)/initrd.gz"
+done < <(sort -k3,3nr -k2,2 release-list)
 
 # vim: set ts=4 sw=4 sts=4 noexpandtab nosta:

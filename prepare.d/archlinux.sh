@@ -1,18 +1,17 @@
 #!/bin/bash
+#root: archlinux
 
-set -e
 source functions.sh
+cd "$LOCAL_PATH"
 
-text=$(curl -s "$ARCHLINUX_MIRROR/iso/latest/md5sums.txt")
+text=$(curl -s "${ARCHLINUX_MIRROR}/iso/latest/md5sums.txt")
 
 if [[ "$text" =~ archlinux-([0-9.]+)-x86_64.iso ]]; then
-	iso_file="$BASH_REMATCH"
-	version="${BASH_REMATCH[1]}"
+	iso_file="${BASH_REMATCH[0]}"
+	folder="${BASH_REMATCH[1]}"
+	url="${ARCHLINUX_MIRROR}/iso/latest/${iso_file}"
 
-	url="$ARCHLINUX_MIRROR/iso/latest/$iso_file"
-	folder="$ARCHLINUX_LOCAL_ROOT/$version"
-
-	if [[ -d "$folder" ]]; then
+	if [[ -d "${folder}" ]]; then
 		echo "Already exists: $folder"
 	else
 		echo "Extracting $url to $folder"

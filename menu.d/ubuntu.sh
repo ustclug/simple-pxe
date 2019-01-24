@@ -1,7 +1,9 @@
 #!/bin/bash
 #menu: Ubuntu
+#root: ubuntu
 
 source functions.sh
+cd "$LOCAL_PATH"
 
 cat <<-EOF
 if [ -z "\$SP_UBUNTU_ARCH" ]; then
@@ -43,44 +45,34 @@ submenu "[option] LiveCD RootFS = \$SP_UBUNTU_ROOTFS" {
 }
 EOF
 
+grub_menu_sep '--- Live CD ---'
+
+while read folder; do
+	IFS='_' read codename version variant arch <<< "$folder"
+
+	# Check LiveCD kernel existence
+	kernels=( "$folder/casper/vmlinuz"* )
+	initrds=( "$folder/casper/initrd"* )
+	[[ -f "${kernels[0]}" && -f "${initrds[0]}" ]] || continue
+
+	echo "if [ "\$SP_UBUNTU_ARCH" = "$arch" ]; then"
+	grub_linux_entry \
+		"Ubuntu $version ($codename) $variant LiveCD" \
+		"$GRUB_PATH/${kernels[0]}" \
+		"$GRUB_PATH/${initrds[0]}" \
+		"boot=casper netboot=nfs nfsroot=$PXE_NFS_HOST:$NFS_PATH/$folder locale=zh_CN \${SP_UBUNTU_ROOTFS}"
+done < <(ls | sort -t_ -k2,2r -k3)
+
 grub_menu_sep '--- Network Installer ---'
 
 fmt="$(url2grub $UBUNTU_MIRROR)/dists/%s/main/installer-\${SP_UBUNTU_ARCH}/current/images/netboot/ubuntu-installer/\${SP_UBUNTU_ARCH}"
 while read version full_version support codename; do
-	[[ $support = 1 ]] && lts="LTS " || lts=""
+	[[ "$support" == 1 ]] && lts="LTS " || lts=""
 
-	cat <<-EOF
-	menuentry 'Ubuntu ${version} ${lts}(${codename}) installer' {
-	  echo 'Loading kernel...'
-	  linux $(printf "$fmt" $codename)/linux
-	  echo 'Loading initial ramdisk...'
-	  initrd $(printf "$fmt" $codename)/initrd.gz
-	}
-	EOF
-done < <(get_ubuntu_releases)
-
-grub_menu_sep '--- Live CD ---'
-cd $UBUNTU_LOCAL_ROOT
-while read folder; do
-	IFS='_' read codename version variant arch <<< "$folder"
-
-	kernel=$(ls "$folder/casper/" | grep -Pom1 '^vmlinuz(\.\w+)?$' || true)
-	initrd=$(ls "$folder/casper/" | grep -Pom1 '^initrd(\.\w+)?$' || true)
-	[[ -z "$kernel" || -z "$initrd" ]] && continue
-
-	relpath=$(realpath --relative-to="$PXE_LOCAL_ROOT" "$folder")
-	wwwroot=$(url2grub "$PXE_HTTP_ROOT/$relpath")
-
-	cat <<-EOF
-	if [ "\$SP_UBUNTU_ARCH" = "$arch" ]; then
-	menuentry 'Ubuntu $version ($codename) $variant LiveCD' {
-	  echo 'Loading kernel...'
-	  linux $wwwroot/casper/$kernel boot=casper netboot=nfs nfsroot=$PXE_NFS_HOST:$PXE_NFS_ROOT/$relpath/ locale=zh_CN \${SP_UBUNTU_ROOTFS}
-	  echo 'Loading initial ramdisk...'
-	  initrd $wwwroot/casper/$initrd
-	}
-	fi
-	EOF
-done < <(ls | sort -t_ -k2,2r -k3)
+	grub_linux_entry \
+		"Ubuntu ${version} ${lts}(${codename}) installer" \
+		"$(printf "$fmt" $codename)/linux" \
+		"$(printf "$fmt" $codename)/initrd.gz"
+done < release-list
 
 # vim: set ts=4 sw=4 sts=4 noexpandtab nosta:

@@ -4,12 +4,45 @@ source config
 source functions.sh
 export $(grep -Po "^[A-Z_]+(?==)" config)
 
-do_prepare() {
-	set +e
+# PXE_LOCAL_ROOT ->  LOCAL_PATH
+# PXE_HTTP_ROOT  ->  HTTP_PATH
+#                    GRUB_PATH
+# PXE_NFS_ROOT   ->  NFS_PATH
 
+parse_header() {
+	unset header && declare -Ag header
+	local fullpath filename key value
+	fullpath="$1"
+
+	while read line; do
+		if [[ "$line" =~ ^\#([[:alnum:]]+):[[:space:]]*(.*)$ ]]; then
+			key="${BASH_REMATCH[1]}"
+			value="${BASH_REMATCH[2]}"
+			header["$key"]="$value"
+		fi
+	done < "$fullpath"
+
+	if [[ -z "${header[root]}" ]]; then
+		filename=$(basename -- "$fullpath")
+		filename="${filename%.*}"
+		header[root]="$filename"
+	fi
+
+	export LOCAL_PATH="${PXE_LOCAL_ROOT}/${header[root]}"
+	export HTTP_PATH="${PXE_HTTP_ROOT}/${header[root]}"
+	export GRUB_PATH=$(url2grub "$HTTP_PATH")
+	export NFS_PATH="${PXE_NFS_ROOT}/${header[root]}"
+}
+
+do_prepare() {
 	for item in ${PXE_PREPARE[@]}; do
-		if [[ -f "prepare.d/${item}.sh" ]]; then
-			bash "prepare.d/${item}.sh"
+		script="prepare.d/${item}.sh"
+
+		if [[ -f "${script}" ]]; then
+			echo "Run ${script}..."
+			parse_header "${script}"
+			mkdir -p "${LOCAL_PATH}"
+			bash "${script}"
 		fi
 	done
 
@@ -17,57 +50,58 @@ do_prepare() {
 }
 
 do_menu() {
-	set -e
-
 	menu_dir="${PXE_LOCAL_ROOT}/menu"
 	menu_url=$(url2grub "${PXE_HTTP_ROOT}/menu")
 	mkdir -p "${menu_dir}"
 
 	menu_root="${menu_dir}/root.menu"
-	menu_root_tmp=$(mktemp)
-	trap "rm -f ${menu_root_tmp}" EXIT
+	temp[menu_root]=$(mktemp)
 
 	for item in ${PXE_MENUS[@]}; do
-		menu_item="${menu_dir}/${item}.menu"
-		menu_item_tmp=$(mktemp)
-		trap "rm -f ${menu_item_tmp}" EXIT
+		local script="menu.d/${item}.sh"
+		local menu_file="${menu_dir}/${item}.menu"
+		export PXE_MENU_URL="${menu_url}/${item}.menu"
 
-		title="$(grep -Pom1 '^#menu:\s*\K.+$' "menu.d/${item}.sh" || true)"
-		title="${title:-$item}"
+		if [[ -f "${script}" ]]; then
+			parse_header "${script}"
+			echo "Generating menu item '${header[menu]}'..."
 
-		echo "Generating menu item '$title'..."
+			id="do_menu_${item}"
+			temp[$id]=$(mktemp)
 
-		cat >> "${menu_item_tmp}" <<-EOF
-		menuentry '..' {
-		  configfile "$menu_url/root.menu"
-		}
-		EOF
+			cat >> "${temp[$id]}" <<-EOF
+			menuentry '..' {
+			  configfile "$menu_url/root.menu"
+			}
+			EOF
 
-		export PXE_MENU_URL="$menu_url/$item.menu"
-		bash "menu.d/${item}.sh" >> "${menu_item_tmp}"
-		if [ "$?" -ne 0 ]; then
-			echo "${item}: failed to generate menu"
-			rm -f "${menu_item_tmp}"
+			bash "${script}" >> "${temp[$id]}"
+
+			if [[ "$?" != 0 ]]; then
+				echo "${item}: failed to generate menu"
+			else
+				chmod 644 "${temp[$id]}"
+				mv "${temp[$id]}" "${menu_file}"
+			fi
 		fi
 
-		chmod 644 "${menu_item_tmp}"
-		mv "${menu_item_tmp}" "${menu_item}"
-
-		cat >> "${menu_root_tmp}" <<-EOF
-		menuentry '$title' {
-		  configfile "$PXE_MENU_URL"
-		}
-		EOF
+		if [[ -f "${menu_file}" ]]; then
+			cat >> "${temp[menu_root]}" <<-EOF
+			menuentry '$title' {
+			  configfile "$PXE_MENU_URL"
+			}
+			EOF
+		fi
 	done
 
-	cat >> "${menu_root_tmp}" <<-EOF
+	cat >> "${temp[menu_root]}" <<-EOF
 	menuentry 'Reboot' {
 	  reboot
 	}
 	EOF
 
-	chmod 644 "${menu_root_tmp}"
-	mv "${menu_root_tmp}" "${menu_root}"
+	chmod 644 "${temp[menu_root]}"
+	mv "${temp[menu_root]}" "${menu_root}"
 }
 
 # main {{{
