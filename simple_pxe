@@ -3,6 +3,7 @@
 source functions.sh
 
 export ARCHLINUX_MIRROR="http://mirrors.ustc.edu.cn/archlinux"
+export CENTOS_MIRROR="http://mirrors.ustc.edu.cn/centos"
 export DEBIAN_CD_MIRROR="http://mirrors.ustc.edu.cn/debian-cd"
 export DEBIAN_MIRROR="http://mirrors.ustc.edu.cn/debian"
 export UBUNTU_MIRROR="http://mirrors.ustc.edu.cn/ubuntu"
