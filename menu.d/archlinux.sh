@@ -3,28 +3,28 @@
 #root: archlinux
 
 source functions.sh
-cd "$LOCAL_PATH"
+cd "${LOCAL_PATH}" || exit 1
 
-cat <<-EOF
-if [ -z "\$SP_ARCH_COPYTORAM" ]; then
-  set SP_ARCH_COPYTORAM='y'
-fi
+cat <<- EOF
+	if [ -z "\$SP_ARCH_COPYTORAM" ]; then
+	  set SP_ARCH_COPYTORAM='y'
+	fi
 
-submenu "[option] Copy RootFS to RAM = \$SP_ARCH_COPYTORAM" {
-  menuentry 'y: Copy RootFS to RAM' {
-    set SP_ARCH_COPYTORAM='y'
-    export SP_ARCH_COPYTORAM
-    configfile $PXE_MENU_URL
-  }
-  menuentry 'n: Mount RootFS via NFS' {
-    set SP_ARCH_COPYTORAM='n'
-    export SP_ARCH_COPYTORAM
-    configfile $PXE_MENU_URL
-  }
-}
+	submenu "[option] Copy RootFS to RAM = \$SP_ARCH_COPYTORAM" {
+	  menuentry 'y: Copy RootFS to RAM' {
+	    set SP_ARCH_COPYTORAM='y'
+	    export SP_ARCH_COPYTORAM
+	    configfile ${PXE_MENU_URL}
+	  }
+	  menuentry 'n: Mount RootFS via NFS' {
+	    set SP_ARCH_COPYTORAM='n'
+	    export SP_ARCH_COPYTORAM
+	    configfile ${PXE_MENU_URL}
+	  }
+	}
 EOF
 
-while read version; do
+while read -r version; do
 	bootdir="${GRUB_PATH}/${version}/arch/boot"
 	grub_linux_entry \
 		"Arch Linux (${version})" \

@@ -3,49 +3,50 @@
 declare -Ag temp
 cleanup_temp() {
 	for key in "${!temp[@]}"; do
-		echo "Clean up: ${temp[$key]}"
-		rm -rf -- "${temp[$key]}"
+		echo "Clean up: ${temp[${key}]}"
+		rm -rf -- "${temp[${key}]}"
 	done
 }
 trap 'cleanup_temp' EXIT
 
-
-panick () {
-    local mesg=$1; shift
-    local str=$(printf "==> ERROR: ${mesg}\n" "$@")
-	echo "$str" >&2
-    exit 1
+panick() {
+	local mesg str
+	mesg=$1 && shift
+	str=$(printf "==> ERROR: ${mesg}\n" "$@")
+	echo "${str}" >&2
+	exit 1
 }
 
 url2grub() {
 	local url="$1"
 	local url_regex='^(http|tftp)://([^/]+)(/.*)?$'
-	if [[ "$url" =~ $url_regex ]]; then
+	if [[ "${url}" =~ ${url_regex} ]]; then
 		local protocol="${BASH_REMATCH[1]}"
 		local host="${BASH_REMATCH[2]}"
 		local path="${BASH_REMATCH[3]}"
-		echo "($protocol,$host)$path"
+		echo "(${protocol},${host})${path}"
 	fi
 }
 
 net_extract() {
-	local url="$1"
-	local target="$2"
-	local workdir=$(dirname "${target}")
-	mkdir -p "$workdir"
+	local url target workdir
+	url="$1"
+	target="$2"
+	workdir=$(dirname "${target}")
+	mkdir -p "${workdir}"
 
 	id="net_extract_${RANDOM}"
-	temp[$id]=$(mktemp -d -p "${workdir}" .tmp.XXXXXXXX) || return -1
+	temp[${id}]=$(mktemp -d -p "${workdir}" .tmp.XXXXXXXX) || return 1
 
-	curl -fsL "${url}" | bsdtar -x -f - -C "${temp[$id]}"
+	curl -fsL "${url}" | bsdtar -x -f - -C "${temp[${id}]}"
 
 	if [[ "${PIPESTATUS[0]}" == 0 && "$?" == 0 ]]; then
-		chmod 755 "${temp[$id]}"
-		[[ -d "$target" ]] && mv "$target" "$target.bak"
-		mv "${temp[$id]}" "$target"
+		chmod 755 "${temp[${id}]}"
+		[[ -d "${target}" ]] && mv "${target}" "${target}.bak"
+		mv "${temp[${id}]}" "${target}"
 	else
 		echo "Download failed"
-		rm -rf "${temp[$id]}"
+		rm -rf "${temp[${id}]}"
 		return 1
 	fi
 }
@@ -57,15 +58,15 @@ url_check() {
 grep_web() {
 	local url="$1"
 	local regex="$2"
-	curl -fsL "$url" | grep -Po "$regex" | sort -ur
+	curl -fsL "${url}" | grep -Po "${regex}" | sort -ur
 	[[ "${PIPESTATUS[0]}" == 0 ]]
 }
 
 grub_menu_sep() {
 	cat <<-EOF
-	menuentry '$1' {
-	    true
-	}
+		menuentry '$1' {
+		  true
+		}
 	EOF
 }
 
@@ -75,12 +76,12 @@ grub_linux_entry() {
 	local initrd="$3"
 	local param="$4"
 	cat <<-EOF
-	menuentry '$title' {
-	  echo 'Loading kernel...'
-	  linux $kernel $param
-	  echo 'Loading initial ramdisk...'
-	  initrd $initrd
-	}
+		menuentry '${title}' {
+		  echo 'Loading kernel...'
+		  linux ${kernel} ${param}
+		  echo 'Loading initial ramdisk...'
+		  initrd ${initrd}
+		}
 	EOF
 }
 

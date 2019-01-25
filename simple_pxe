@@ -14,28 +14,29 @@ parse_header() {
 	local fullpath filename key value
 	fullpath="$1"
 
-	while read line; do
-		if [[ "$line" =~ ^\#([[:alnum:]]+):[[:space:]]*(.*)$ ]]; then
+	while read -r line; do
+		if [[ "${line}" =~ ^\#([[:alnum:]]+):[[:space:]]*(.*)$ ]]; then
 			key="${BASH_REMATCH[1]}"
 			value="${BASH_REMATCH[2]}"
-			header["$key"]="$value"
+			header["${key}"]="${value}"
 		fi
-	done < "$fullpath"
+	done < "${fullpath}"
 
 	if [[ -z "${header[root]}" ]]; then
-		filename=$(basename -- "$fullpath")
+		filename=$(basename -- "${fullpath}")
 		filename="${filename%.*}"
-		header[root]="$filename"
+		header[root]="${filename}"
 	fi
 
-	export LOCAL_PATH="${PXE_LOCAL_ROOT}/${header[root]}"
-	export HTTP_PATH="${PXE_HTTP_ROOT}/${header[root]}"
-	export GRUB_PATH=$(url2grub "$HTTP_PATH")
-	export NFS_PATH="${PXE_NFS_ROOT}/${header[root]}"
+	LOCAL_PATH="${PXE_LOCAL_ROOT}/${header[root]}"
+	HTTP_PATH="${PXE_HTTP_ROOT}/${header[root]}"
+	GRUB_PATH=$(url2grub "${HTTP_PATH}")
+	NFS_PATH="${PXE_NFS_ROOT}/${header[root]}"
+	export LOCAL_PATH HTTP_PATH GRUB_PATH NFS_PATH
 }
 
 do_prepare() {
-	for item in ${PXE_PREPARE[@]}; do
+	for item in "${PXE_PREPARE[@]}"; do
 		script="prepare.d/${item}.sh"
 
 		if [[ -f "${script}" ]]; then
@@ -57,7 +58,7 @@ do_menu() {
 	menu_root="${menu_dir}/root.menu"
 	temp[menu_root]=$(mktemp)
 
-	for item in ${PXE_MENUS[@]}; do
+	for item in "${PXE_MENUS[@]}"; do
 		local script="menu.d/${item}.sh"
 		local menu_file="${menu_dir}/${item}.menu"
 		export PXE_MENU_URL="${menu_url}/${item}.menu"
@@ -67,37 +68,35 @@ do_menu() {
 			echo "Generating menu item '${header[menu]}'..."
 
 			id="do_menu_${item}"
-			temp[$id]=$(mktemp)
+			temp[${id}]=$(mktemp)
 
-			cat >> "${temp[$id]}" <<-EOF
-			menuentry '..' {
-			  configfile "$menu_url/root.menu"
-			}
+			cat >> "${temp[${id}]}" <<- EOF
+				menuentry '..' {
+				  configfile "${menu_url}/root.menu"
+				}
 			EOF
 
-			bash "${script}" >> "${temp[$id]}"
-
-			if [[ "$?" != 0 ]]; then
-				echo "${item}: failed to generate menu"
+			if bash "${script}" >> "${temp[${id}]}"; then
+				chmod 644 "${temp[${id}]}"
+				mv "${temp[${id}]}" "${menu_file}"
 			else
-				chmod 644 "${temp[$id]}"
-				mv "${temp[$id]}" "${menu_file}"
+				echo "${item}: failed to generate menu"
 			fi
 		fi
 
 		if [[ -f "${menu_file}" ]]; then
-			cat >> "${temp[menu_root]}" <<-EOF
-			menuentry '$title' {
-			  configfile "$PXE_MENU_URL"
-			}
+			cat >> "${temp[menu_root]}" <<- EOF
+				menuentry '${header[menu]}' {
+				  configfile "${PXE_MENU_URL}"
+				}
 			EOF
 		fi
 	done
 
-	cat >> "${temp[menu_root]}" <<-EOF
-	menuentry 'Reboot' {
-	  reboot
-	}
+	cat >> "${temp[menu_root]}" <<- EOF
+		menuentry 'Reboot' {
+		  reboot
+		}
 	EOF
 
 	chmod 644 "${temp[menu_root]}"
@@ -107,17 +106,17 @@ do_menu() {
 # main {{{
 readonly ACTION="${1:-menu}"
 
-case "$ACTION" in
-    prepare)
-        do_prepare
-        ;;
-    menu)
+case "${ACTION}" in
+	prepare)
+		do_prepare
+		;;
+	menu)
 		do_menu
-        ;;
-    *)
-        panick "Unknown action: $ACTION"
+		;;
+	*)
+		panick "Unknown action: ${ACTION}"
+		;;
 esac
 # }}}
-
 
 # vim: set ts=4 sw=4 sts=4 noexpandtab nosta:
