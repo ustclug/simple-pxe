@@ -4,6 +4,14 @@
 source functions.sh
 cd "${LOCAL_PATH}" || exit 1
 
+temp[preseed]=$(mktemp)
+cat > "${temp[preseed]}" <<- EOF && install -m644 "${temp[preseed]}" preseed.txt
+	d-i mirror/country string manual
+	d-i mirror/http/hostname string $(cut -d/ -f3 <<< "${DEBIAN_MIRROR}")
+	d-i mirror/http/directory string /$(cut -d/ -f4- <<< "${DEBIAN_MIRROR}")
+	d-i mirror/http/proxy string
+EOF
+
 # Update Ubuntu release list
 regex="Ubuntu ([0-9]{2}\.[0-9]{2})(\.[0-9]+)? (LTS )?\(([A-Z][a-z]+) [A-Z][a-z]+\)"
 temp[rlist]=$(mktemp)

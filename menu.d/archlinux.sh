@@ -30,7 +30,7 @@ while read -r version; do
 		"Arch Linux (${version})" \
 		"${bootdir}/x86_64/vmlinuz" \
 		"${bootdir}/x86_64/archiso.img ${bootdir}/amd_ucode.img ${bootdir}/intel_ucode.img" \
-		"ip=dhcp archisobasedir=arch archiso_nfs_srv=${PXE_NFS_HOST}:${NFS_PATH}/${version} copytoram=\$SP_ARCH_COPYTORAM"
+		"ip=dhcp archisobasedir=arch archiso_nfs_srv=${PXE_NFS_HOST}:${NFS_PATH}/${version} copytoram=\$SP_ARCH_COPYTORAM mirror=${ARCHLINUX_MIRROR}"
 done < <(ls | sort -ru)
 
 # vim: set ts=4 sw=4 sts=4 noexpandtab nosta:

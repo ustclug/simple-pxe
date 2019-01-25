@@ -32,8 +32,9 @@ fmt="$(url2grub "${DEBIAN_MIRROR}")/dists/%s/main/installer-\${SP_DEBIAN_ARCH}/c
 while read -r codename status version; do
 	grub_linux_entry \
 		"Debian ${codename} (${status}) Installer" \
-		"$(printf "${fmt}" "${version}")/linux" \
-		"$(printf "${fmt}" "${version}")/initrd.gz"
+		"$(printf "${fmt}" "${codename}")/linux" \
+		"$(printf "${fmt}" "${codename}")/initrd.gz" \
+		"url=${HTTP_PATH}/preseed.txt"
 done < <(sort -k3,3nr -k2,2 release-list)
 
 # vim: set ts=4 sw=4 sts=4 noexpandtab nosta:

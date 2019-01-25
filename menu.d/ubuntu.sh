@@ -61,6 +61,7 @@ while read -r folder; do
 		"${GRUB_PATH}/${kernels[0]}" \
 		"${GRUB_PATH}/${initrds[0]}" \
 		"boot=casper netboot=nfs nfsroot=${PXE_NFS_HOST}:${NFS_PATH}/${folder} locale=zh_CN \${SP_UBUNTU_ROOTFS}"
+	echo "fi"
 done < <(ls | sort -t_ -k2,2r -k3)
 
 grub_menu_sep '--- Network Installer ---'
@@ -72,7 +73,8 @@ while read -r version full_version support codename; do
 	grub_linux_entry \
 		"Ubuntu ${version} ${lts}(${codename}) installer" \
 		"$(printf "${fmt}" "${codename}")/linux" \
-		"$(printf "${fmt}" "${codename}")/initrd.gz"
+		"$(printf "${fmt}" "${codename}")/initrd.gz" \
+		"url=${HTTP_PATH}/preseed.txt"
 done < release-list
 
 # vim: set ts=4 sw=4 sts=4 noexpandtab nosta:
