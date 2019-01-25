@@ -1,0 +1,7 @@
+PXE_PREPARE=(archlinux ubuntu debian clonezilla gparted memtest)
+PXE_MENUS=(archlinux ubuntu debian clonezilla gparted tool)
+
+PXE_LOCAL_ROOT=/srv/pxe
+PXE_HTTP_ROOT=http://10.123.123.1/pxe
+PXE_NFS_HOST=10.123.123.1
+PXE_NFS_ROOT=/srv/pxe

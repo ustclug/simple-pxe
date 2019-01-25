@@ -1,15 +1,29 @@
 #!/bin/bash
 
-source config
 source functions.sh
-export $(grep -Po "^[A-Z_]+(?==)" config)
 
-# PXE_LOCAL_ROOT ->  LOCAL_PATH
-# PXE_HTTP_ROOT  ->  HTTP_PATH
-#                    GRUB_PATH
-# PXE_NFS_ROOT   ->  NFS_PATH
+export ARCHLINUX_MIRROR="http://mirrors.ustc.edu.cn/archlinux"
+export DEBIAN_CD_MIRROR="http://mirrors.ustc.edu.cn/debian-cd"
+export DEBIAN_MIRROR="http://mirrors.ustc.edu.cn/debian"
+export UBUNTU_MIRROR="http://mirrors.ustc.edu.cn/ubuntu"
+export UBUNTU_RELEASES_MIRROR="http://mirrors.ustc.edu.cn/ubuntu-releases"
+export PXE_LOCAL_ROOT PXE_HTTP_ROOT PXE_NFS_HOST PXE_NFS_ROOT
+declare -a PXE_PREPARE PXE_MENUS
+source config.local
+
+validate_config() {
+	[[ -d "${PXE_LOCAL_ROOT}" ]] || panick "\$PXE_LOCAL_ROOT is not a valid directory"
+	[[ -n "${PXE_HTTP_ROOT}" ]] || panick "Please set \$PXE_HTTP_ROOT"
+	[[ -n "${PXE_NFS_HOST}" ]] || panick "Please set \$PXE_NFS_HOST"
+	[[ -n "${PXE_NFS_ROOT}" ]] || panick "Please set \$PXE_NFS_ROOT"
+}
 
 parse_header() {
+	# PXE_LOCAL_ROOT ->  LOCAL_PATH
+	# PXE_HTTP_ROOT  ->  HTTP_PATH
+	#                    GRUB_PATH
+	# PXE_NFS_ROOT   ->  NFS_PATH
+
 	unset header && declare -Ag header
 	local fullpath filename key value
 	fullpath="$1"
@@ -105,6 +119,7 @@ do_menu() {
 
 # main {{{
 readonly ACTION="${1:-menu}"
+validate_config
 
 case "${ACTION}" in
 	prepare)
