@@ -74,7 +74,29 @@ do_menu() {
 	menu_root="${menu_dir}/root.menu"
 	temp[menu_root]=$(mktemp)
 
+	intro_flag=0
+	if [[ -n "${PXE_INTRO}" ]]; then
+		echo "${PXE_INTRO}" > "${PXE_LOCAL_ROOT}/intro.txt"
+		intro_flag=1
+	fi
+
+	cat >> "${temp[menu_root]}" <<- EOF
+		menuentry '${PXE_TITLE:-Network Boot Service}' {
+		  if [ ${intro_flag} = 1 ]; then
+		    set pager=1
+		    cat $(url2grub "${PXE_HTTP_ROOT}/intro.txt")
+		    echo "Press any key to continue"
+		    read
+		  fi
+		}
+	EOF
+
 	for item in "${PXE_MENUS[@]}"; do
+		if [[ ${item:0:1} == "-" ]]; then
+			grub_menu_sep "<${item:1}>" >> "${temp[menu_root]}"
+			continue
+		fi
+
 		local script="menu.d/${item}.sh"
 		local menu_file="${menu_dir}/${item}.menu"
 		export PXE_MENU_URL="${menu_url}/${item}.menu"
@@ -102,18 +124,12 @@ do_menu() {
 
 		if [[ -f "${menu_file}" ]]; then
 			cat >> "${temp[menu_root]}" <<- EOF
-				menuentry '${header[menu]}' {
+				menuentry '- ${header[menu]}' {
 				  configfile "${PXE_MENU_URL}"
 				}
 			EOF
 		fi
 	done
-
-	cat >> "${temp[menu_root]}" <<- EOF
-		menuentry 'Reboot' {
-		  reboot
-		}
-	EOF
 
 	chmod 644 "${temp[menu_root]}"
 	mv "${temp[menu_root]}" "${menu_root}"

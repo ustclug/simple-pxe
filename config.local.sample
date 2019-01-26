@@ -1,7 +1,25 @@
-PXE_PREPARE=(archlinux ubuntu debian centos clonezilla gparted memtest)
-PXE_MENUS=(archlinux ubuntu debian centos clonezilla gparted tool)
+PXE_PREPARE=(archlinux ubuntu debian centos fedora clonezilla gparted memtest)
+PXE_MENUS=(
+    "-Linux Distros" archlinux ubuntu debian centos fedora
+    "-Utilities" clonezilla gparted tool reboot)
 
 PXE_LOCAL_ROOT=/srv/pxe
 PXE_HTTP_ROOT=http://10.123.123.1/pxe
 PXE_NFS_HOST=10.123.123.1
 PXE_NFS_ROOT=/srv/pxe
+
+PXE_TITLE="USTC Network Boot Service (http://pxe.ustc.edu.cn/)"
+PXE_INTRO="
+== USTC Network Boot Service ==
+
+Website: http://pxe.ustc.edu.cn/
+
+This is the USTC Network Boot Service provided by:
+- Linux User Group (https://lug.ustc.edu.cn/)
+- Network and Information Center (https://ustcnet.ustc.edu.cn/)
+- Library (https://lib.ustc.edu.cn)
+
+If you get here by mistake, please reboot, check the BIOS/UEFI firmware
+settings and disable network boot.
+
+If you need help, please contact lug@ustc.edu.cn."
