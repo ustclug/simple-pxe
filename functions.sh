@@ -52,7 +52,17 @@ net_extract() {
 }
 
 url_check() {
-	curl -fI "$1" >/dev/null 2>&1
+	local url code
+
+	url="$1" && shift
+	code=$(curl -sIL -o /dev/null -w "%{http_code}" "${url}") || return 1
+
+	(( code < 400 )) && return 0
+	for white in "$@"; do
+		(( code == white )) && return 0
+	done
+
+	return 1
 }
 
 grep_web() {

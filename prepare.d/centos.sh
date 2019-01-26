@@ -7,8 +7,8 @@ cd "${LOCAL_PATH}" || exit 1
 temp[rlist]=$(mktemp)
 
 count=0
-for ((version=6; ; version++)); do
-	curl -fsLI -o/dev/null "${CENTOS_MIRROR}/${version}" || break
+for ((version=6; version<10; version++)); do
+	url_check "${CENTOS_MIRROR}/${version}" 403 || break
 
 	for arch in i386 x86_64; do
 		url_base="${CENTOS_MIRROR}/${version}/os/${arch}"

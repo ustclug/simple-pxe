@@ -6,6 +6,7 @@ export ARCHLINUX_MIRROR="http://mirrors.ustc.edu.cn/archlinux"
 export CENTOS_MIRROR="http://mirrors.ustc.edu.cn/centos"
 export DEBIAN_CD_MIRROR="http://mirrors.ustc.edu.cn/debian-cd"
 export DEBIAN_MIRROR="http://mirrors.ustc.edu.cn/debian"
+export FEDORA_MIRROR="http://mirrors.ustc.edu.cn/fedora"
 export UBUNTU_MIRROR="http://mirrors.ustc.edu.cn/ubuntu"
 export UBUNTU_RELEASES_MIRROR="http://mirrors.ustc.edu.cn/ubuntu-releases"
 export PXE_LOCAL_ROOT PXE_HTTP_ROOT PXE_NFS_HOST PXE_NFS_ROOT
