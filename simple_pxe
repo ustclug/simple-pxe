@@ -81,6 +81,19 @@ do_menu() {
 	fi
 
 	cat >> "${temp[menu_root]}" <<- EOF
+		set menu_color_highlight=${GRUB_COLOR_HIGHLIGHT:-white/red}
+		set menu_color_normal=${GRUB_COLOR_NORMAL:-white/blue}
+		export menu_color_highlight
+		export menu_color_normal
+
+		if [ "\$feature_all_video_module" = "y" ]; then
+		  insmod all_video
+		else
+		  for mod in efi_gop efi_uga ieee1275_fb vbe vga video_bochs video_cirrus; do
+		    insmod \$mod
+		  done
+		fi
+
 		menuentry '${PXE_TITLE:-Network Boot Service}' {
 		  if [ ${intro_flag} = 1 ]; then
 		    set pager=1
