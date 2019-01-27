@@ -7,11 +7,7 @@ cd "${LOCAL_PATH}" || exit 1
 
 cat <<- EOF
 	if [ -z "\$SP_UBUNTU_ARCH" ]; then
-	  if [ \$grub_cpu = "x86_64" ]; then
-	    set SP_UBUNTU_ARCH='amd64'
-	  else
-	    set SP_UBUNTU_ARCH='i386'
-	  fi
+	  set SP_UBUNTU_ARCH='amd64'
 	fi
 
 	if [ -z "\$SP_UBUNTU_ROOTFS" ]; then

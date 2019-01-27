@@ -7,11 +7,7 @@ cd "${LOCAL_PATH}" || exit 1
 
 cat <<- EOF
 	if [ -z "\$SP_CENTOS_ARCH" ]; then
-	  if [ \$grub_cpu = "x86_64" ]; then
-	    set SP_CENTOS_ARCH='x86_64'
-	  else
-	    set SP_CENTOS_ARCH='i386'
-	  fi
+	  set SP_CENTOS_ARCH='x86_64'
 	fi
 
 	submenu "[option] Architecture = \$SP_CENTOS_ARCH" {
