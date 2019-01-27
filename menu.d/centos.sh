@@ -5,24 +5,9 @@
 source functions.sh
 cd "${LOCAL_PATH}" || exit 1
 
-cat <<- EOF
-	if [ -z "\$SP_CENTOS_ARCH" ]; then
-	  set SP_CENTOS_ARCH='x86_64'
-	fi
-
-	submenu "[option] Architecture = \$SP_CENTOS_ARCH" {
-	  menuentry 'amd64: For most modern PCs' {
-	    set SP_CENTOS_ARCH='x86_64'
-	    export SP_CENTOS_ARCH
-	    configfile ${PXE_MENU_URL}
-	}
-	  menuentry 'i386: For very old PCs' {
-	    set SP_CENTOS_ARCH='i386'
-	    export SP_CENTOS_ARCH
-	    configfile ${PXE_MENU_URL}
-	  }
-	}
-EOF
+grub_option SP_CENTOS_ARCH Architecture \
+	x86_64 x86_64 "For most modern PCs" \
+	i386   i386  "For very old PCs"
 
 while read -r version arch tag; do
 	base="$(url2grub "${CENTOS_MIRROR}")/${version}/os/${arch}/images/pxeboot"

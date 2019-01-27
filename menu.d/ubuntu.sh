@@ -5,41 +5,12 @@
 source functions.sh
 cd "${LOCAL_PATH}" || exit 1
 
-cat <<- EOF
-	if [ -z "\$SP_UBUNTU_ARCH" ]; then
-	  set SP_UBUNTU_ARCH='amd64'
-	fi
-
-	if [ -z "\$SP_UBUNTU_ROOTFS" ]; then
-	  set SP_UBUNTU_ROOTFS='toram'
-	fi
-
-	submenu "[option] Architecture = \$SP_UBUNTU_ARCH" {
-	  menuentry 'amd64: For most modern PCs' {
-	    set SP_UBUNTU_ARCH='amd64'
-	    export SP_UBUNTU_ARCH
-	    configfile ${PXE_MENU_URL}
-	  }
-	  menuentry 'i386: For very old PCs' {
-	    set SP_UBUNTU_ARCH='i386'
-	    export SP_UBUNTU_ARCH
-	    configfile ${PXE_MENU_URL}
-	  }
-	}
-
-	submenu "[option] LiveCD RootFS = \$SP_UBUNTU_ROOTFS" {
-	  menuentry 'toram: Copy RootFS to RAM' {
-	    set SP_UBUNTU_ROOTFS='toram'
-	    export SP_UBUNTU_ROOTFS
-	    configfile ${PXE_MENU_URL}
-	  }
-	  menuentry 'network_mount: Mount RootFS via NFS' {
-	    set SP_UBUNTU_ROOTFS='network_mount'
-	    export SP_UBUNTU_ROOTFS
-	    configfile ${PXE_MENU_URL}
-	  }
-	}
-EOF
+grub_option SP_UBUNTU_ARCH Architecture \
+	amd64 amd64 "For most modern PCs" \
+	i386  i386  "For very old PCs"
+grub_option SP_UBUNTU_ROOTFS "LiveCD RootFS" \
+	toram ToRAM "Copy RootFS to RAM" \
+	""    NFS   "Mount RootFS via NFS"
 
 grub_menu_sep '--- Live CD ---'
 

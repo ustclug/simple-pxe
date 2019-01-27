@@ -95,4 +95,45 @@ grub_linux_entry() {
 	EOF
 }
 
+grub_option() {
+	var="$1" && shift
+	desc="$1" && shift
+
+	cat <<- EOF
+		if [ -z "\$${var}_INDEX" ]; then
+		  set ${var}='$1'
+		  set ${var}_DNAME='$2'
+		  set ${var}_INDEX=0
+		fi
+
+		submenu "[option] ${desc} = \$${var}_DNAME" {
+		  menuentry '${desc}:' {
+		    export ${var}
+		    export ${var}_DNAME
+		    export ${var}_INDEX
+		    configfile ${PXE_MENU_URL}
+		  }
+	EOF
+
+	index=0
+	while (("$#" >= 3)); do
+		cat <<-EOF
+			  menuentry '> $2: $3' {
+			    set ${var}='$1'
+			    set ${var}_DNAME='$2'
+			    set ${var}_INDEX=${index}
+			    export ${var}
+			    export ${var}_DNAME
+			    export ${var}_INDEX
+			    configfile ${PXE_MENU_URL}
+			  }
+		EOF
+
+		shift 3
+		index=$((index+1))
+	done
+
+	echo "}"
+}
+
 # vim: set ts=4 sw=4 sts=4 noexpandtab nosta:
