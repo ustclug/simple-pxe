@@ -2,13 +2,18 @@
 
 source functions.sh
 
-export ARCHLINUX_MIRROR="http://mirrors.ustc.edu.cn/archlinux"
-export CENTOS_MIRROR="http://mirrors.ustc.edu.cn/centos"
-export DEBIAN_CD_MIRROR="http://mirrors.ustc.edu.cn/debian-cd"
-export DEBIAN_MIRROR="http://mirrors.ustc.edu.cn/debian"
-export FEDORA_MIRROR="http://mirrors.ustc.edu.cn/fedora"
-export UBUNTU_MIRROR="http://mirrors.ustc.edu.cn/ubuntu"
-export UBUNTU_RELEASES_MIRROR="http://mirrors.ustc.edu.cn/ubuntu-releases"
+export {ARCHLINUX,CENTOS,DEBIAN_CD,DEBIAN,FEDORA,UBUNTU,UBUNTU_RELEASES}_MIRROR
+export {ARCHLINUX,CENTOS,DEBIAN_CD,DEBIAN,FEDORA,UBUNTU,UBUNTU_RELEASES}_MIRROR_BACKUP
+
+mirror_base="http://mirrors.ustc.edu.cn"
+ARCHLINUX_MIRROR="${mirror_base}/archlinux"
+CENTOS_MIRROR="${mirror_base}/centos"
+DEBIAN_CD_MIRROR="${mirror_base}/debian-cd"
+DEBIAN_MIRROR="${mirror_base}/debian"
+FEDORA_MIRROR="${mirror_base}/fedora"
+UBUNTU_MIRROR="${mirror_base}/ubuntu"
+UBUNTU_RELEASES_MIRROR="${mirror_base}/ubuntu-releases"
+
 export PXE_LOCAL_ROOT PXE_HTTP_ROOT PXE_NFS_HOST PXE_NFS_ROOT
 declare -a PXE_PREPARE PXE_MENUS
 source config.local

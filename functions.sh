@@ -96,6 +96,8 @@ grub_linux_entry() {
 }
 
 grub_option() {
+	local var desc index title
+
 	var="$1" && shift
 	desc="$1" && shift
 
@@ -117,8 +119,11 @@ grub_option() {
 
 	index=0
 	while (("$#" >= 3)); do
+		title="> $2"
+		[[ -n "$3" ]] && title="${title}: $3"
+
 		cat <<-EOF
-			  menuentry '> $2: $3' {
+			  menuentry '${title}' {
 			    set ${var}='$1'
 			    set ${var}_DNAME='$2'
 			    set ${var}_INDEX=${index}
@@ -134,6 +139,25 @@ grub_option() {
 	done
 
 	echo "}"
+}
+
+grub_mirror_selector() {
+	local grub_var="$1" && shift
+
+	declare -a buf
+	for url in "$@"; do
+		buf=("${buf[@]}" "${url}" "${url}" "")
+	done
+
+	grub_option "${grub_var}" "Mirror URL" "${buf[@]}"
+
+	cat <<-EOF
+		regexp \\
+		--set=1:mirror_protocol \\
+		--set=2:mirror_host \\
+		--set=3:mirror_path \\
+		'^([^:]+)://([^/]+)(/.*)\$' "\$${grub_var}"
+	EOF
 }
 
 # vim: set ts=4 sw=4 sts=4 noexpandtab nosta:

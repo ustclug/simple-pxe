@@ -9,7 +9,10 @@ grub_option SP_DEBIAN_ARCH Architecture \
 	amd64 amd64 "For most modern PCs" \
 	i386  i386  "For very old PCs"
 
-fmt="$(url2grub "${DEBIAN_MIRROR}")/dists/%s/main/installer-\${SP_DEBIAN_ARCH}/current/images/netboot/debian-installer/\${SP_DEBIAN_ARCH}"
+IFS=' ' read -r -a mirrors <<< "${DEBIAN_MIRROR_BACKUP}"
+grub_mirror_selector SP_DEBIAN_MIRROR "${DEBIAN_MIRROR}" "${mirrors[@]}"
+
+fmt="(\$mirror_protocol,\$mirror_host)/\$mirror_path/dists/%s/main/installer-\${SP_DEBIAN_ARCH}/current/images/netboot/debian-installer/\${SP_DEBIAN_ARCH}"
 while read -r codename status version; do
 	grub_linux_entry \
 		"Debian ${codename} (${status}) Installer" \

@@ -9,8 +9,11 @@ grub_option SP_CENTOS_ARCH Architecture \
 	x86_64 x86_64 "For most modern PCs" \
 	i386   i386  "For very old PCs"
 
+IFS=' ' read -r -a mirrors <<< "${CENTOS_MIRROR_BACKUP}"
+grub_mirror_selector SP_CENTOS_MIRROR "${CENTOS_MIRROR}" "${mirrors[@]}"
+
 while read -r version arch tag; do
-	base="$(url2grub "${CENTOS_MIRROR}")/${version}/os/${arch}/images/pxeboot"
+	base="(\$mirror_protocol,\$mirror_host)/\$mirror_path/${version}/os/${arch}/images/pxeboot"
 	(("$version" >= 7 )) && repo_arg="inst.repo" || repo_arg="repo"
 
 	echo "if [ \$SP_CENTOS_ARCH = ${arch} ]; then"
@@ -18,7 +21,7 @@ while read -r version arch tag; do
 		"CentOS ${version} Installer" \
 		"${base}/vmlinuz" \
 		"${base}/initrd.img" \
-		"${repo_arg}=${CENTOS_MIRROR}/${version}/os/${arch}"
+		"${repo_arg}=\$SP_CENTOS_MIRROR/${version}/os/${arch}"
 	echo "fi"
 done < <(tac release-list)
 

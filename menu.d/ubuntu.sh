@@ -12,6 +12,9 @@ grub_option SP_UBUNTU_ROOTFS "LiveCD RootFS" \
 	toram ToRAM "Copy RootFS to RAM" \
 	""    NFS   "Mount RootFS via NFS"
 
+IFS=' ' read -r -a mirrors <<< "${UBUNTU_MIRROR_BACKUP}"
+grub_mirror_selector SP_UBUNTU_MIRROR "${UBUNTU_MIRROR}" "${mirrors[@]}"
+
 grub_menu_sep '--- Live CD ---'
 
 while read -r folder; do
@@ -33,7 +36,7 @@ done < <(ls | sort -t_ -k2,2r -k3)
 
 grub_menu_sep '--- Network Installer ---'
 
-fmt="$(url2grub "${UBUNTU_MIRROR}")/dists/%s/main/installer-\${SP_UBUNTU_ARCH}/current/images/netboot/ubuntu-installer/\${SP_UBUNTU_ARCH}"
+fmt="(\$mirror_protocol,\$mirror_host)/\$mirror_path/dists/%s/main/installer-\${SP_UBUNTU_ARCH}/current/images/netboot/ubuntu-installer/\${SP_UBUNTU_ARCH}"
 while read -r version full_version support codename; do
 	[[ "${support}" == 1 ]] && lts="LTS " || lts=""
 
