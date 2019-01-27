@@ -32,6 +32,6 @@ while read -r version rel; do
 		"$(printf "${fmt}" "${version}")/vmlinuz" \
 		"$(printf "${fmt}" "${version}")/initrd.img" \
 		"inst.repo=${FEDORA_MIRROR}/releases/${version}/Everything/x86_64/os/"
-done < release-list
+done < <( sort -k1nr release-list )
 
 # vim: set ts=4 sw=4 sts=4 noexpandtab nosta:
