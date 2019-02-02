@@ -2,8 +2,8 @@
 
 source functions.sh
 
-export {ARCHLINUX,CENTOS,DEBIAN_CD,DEBIAN,FEDORA,UBUNTU,UBUNTU_RELEASES}_MIRROR
-export {ARCHLINUX,CENTOS,DEBIAN_CD,DEBIAN,FEDORA,UBUNTU,UBUNTU_RELEASES}_MIRROR_BACKUP
+export {ARCHLINUX,CENTOS,DEBIAN_CD,DEBIAN,FEDORA,FREEBSD,UBUNTU,UBUNTU_RELEASES}_MIRROR
+export {ARCHLINUX,CENTOS,DEBIAN_CD,DEBIAN,FEDORA,FREEBSD,UBUNTU,UBUNTU_RELEASES}_MIRROR_BACKUP
 
 mirror_base="http://mirrors.ustc.edu.cn"
 ARCHLINUX_MIRROR="${mirror_base}/archlinux"
@@ -11,6 +11,7 @@ CENTOS_MIRROR="${mirror_base}/centos"
 DEBIAN_CD_MIRROR="${mirror_base}/debian-cd"
 DEBIAN_MIRROR="${mirror_base}/debian"
 FEDORA_MIRROR="${mirror_base}/fedora"
+FREEBSD_MIRROR="${mirror_base}/freebsd"
 UBUNTU_MIRROR="${mirror_base}/ubuntu"
 UBUNTU_RELEASES_MIRROR="${mirror_base}/ubuntu-releases"
 
