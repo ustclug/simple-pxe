@@ -52,7 +52,8 @@ while read -r ver; do
 
 				printf '%s\x00' "${PXE_NFS_ROOT}/${relpath}" \
 					| dd of="${pxe_loader}" bs=1 seek="${loc[0]}" conv=notrunc
-			) && mv "${temp[${id}]}" "${target}"
+			)
+			[[ $? == 0 ]] && mv "${temp[${id}]}" "${target}"
 		fi
 	done
 
