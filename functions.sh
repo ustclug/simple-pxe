@@ -68,7 +68,7 @@ url_check() {
 grep_web() {
 	local url="$1"
 	local regex="$2"
-	curl -fsL "${url}" | grep -Po "${regex}" | sort -ur
+	curl -fsL "${url}" | grep -Po "${regex}" | sort -uVr
 	[[ "${PIPESTATUS[0]}" == 0 ]]
 }
 

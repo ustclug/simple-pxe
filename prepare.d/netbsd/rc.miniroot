@@ -1,0 +1,30 @@
+#!/bin/sh
+
+export PATH=/rescue:/tmp
+
+mount_tmpfs tmpfs /tmp
+mount_tmpfs tmpfs /etc
+mount_tmpfs tmpfs /var
+mkdir -p /var/run /var/db
+
+bzcat /miniroot.fs.bz2 > /tmp/miniroot.fs
+vnconfig vnd0 /tmp/miniroot.fs
+
+mkdir /tmp/mnt
+mount /dev/vnd0a /tmp/mnt
+
+cp /tmp/mnt/sbin/dhcpcd /tmp
+cp -Rp /tmp/mnt/etc/* /etc
+
+umount /tmp/mnt
+vnconfig -u vnd0
+rm /tmp/miniroot.fs
+
+dhcpcd -w -b -q -c /dev/null
+mount_nfs "${nfs_path}" /tmp/mnt
+
+vnconfig -r vnd0 /tmp/mnt/cd.iso
+mkdir /tmp/newroot
+mount_cd9660 /dev/vnd0a /tmp/newroot
+
+sysctl -w init.root=/tmp/newroot

@@ -2,8 +2,8 @@
 
 source functions.sh
 
-export {ARCHLINUX,CENTOS,DEBIAN_CD,DEBIAN,FEDORA,FREEBSD,UBUNTU,UBUNTU_RELEASES}_MIRROR
-export {ARCHLINUX,CENTOS,DEBIAN_CD,DEBIAN,FEDORA,FREEBSD,UBUNTU,UBUNTU_RELEASES}_MIRROR_BACKUP
+export {ARCHLINUX,CENTOS,DEBIAN_CD,DEBIAN,FEDORA,FREEBSD,NETBSD,UBUNTU,UBUNTU_RELEASES}_MIRROR
+export {ARCHLINUX,CENTOS,DEBIAN_CD,DEBIAN,FEDORA,FREEBSD,NETBSD,UBUNTU,UBUNTU_RELEASES}_MIRROR_BACKUP
 
 mirror_base="http://mirrors.ustc.edu.cn"
 ARCHLINUX_MIRROR="${mirror_base}/archlinux"
@@ -12,6 +12,7 @@ DEBIAN_CD_MIRROR="${mirror_base}/debian-cd"
 DEBIAN_MIRROR="${mirror_base}/debian"
 FEDORA_MIRROR="${mirror_base}/fedora"
 FREEBSD_MIRROR="${mirror_base}/freebsd"
+NETBSD_MIRROR="https://mirrors.tuna.tsinghua.edu.cn/NetBSD"
 UBUNTU_MIRROR="${mirror_base}/ubuntu"
 UBUNTU_RELEASES_MIRROR="${mirror_base}/ubuntu-releases"
 
@@ -34,7 +35,10 @@ parse_header() {
 
 	unset header && declare -Ag header
 	local fullpath filename key value
+
 	fullpath="$1"
+	filename=$(basename -- "${fullpath}")
+	filename="${filename%.*}"
 
 	while read -r line; do
 		if [[ "${line}" =~ ^\#([[:alnum:]]+):[[:space:]]*(.*)$ ]]; then
@@ -44,17 +48,14 @@ parse_header() {
 		fi
 	done < "${fullpath}"
 
-	if [[ -z "${header[root]}" ]]; then
-		filename=$(basename -- "${fullpath}")
-		filename="${filename%.*}"
-		header[root]="${filename}"
-	fi
+	[[ -z "${header[root]}" ]] && header[root]="${filename}"
 
+	ASSET_PATH=$(readlink -m "$(dirname "${fullpath}")/${filename}")
 	LOCAL_PATH="${PXE_LOCAL_ROOT}/${header[root]}"
 	HTTP_PATH="${PXE_HTTP_ROOT}/${header[root]}"
 	GRUB_PATH=$(url2grub "${HTTP_PATH}")
 	NFS_PATH="${PXE_NFS_ROOT}/${header[root]}"
-	export LOCAL_PATH HTTP_PATH GRUB_PATH NFS_PATH
+	export ASSET_PATH LOCAL_PATH HTTP_PATH GRUB_PATH NFS_PATH
 }
 
 do_prepare() {

@@ -1,6 +1,6 @@
-PXE_PREPARE=(archlinux ubuntu debian centos fedora freebsd clonezilla gparted memtest)
+PXE_PREPARE=(archlinux ubuntu debian centos fedora freebsd netbsd clonezilla gparted memtest)
 PXE_MENUS=(
-    "-Distros" archlinux ubuntu debian centos fedora freebsd
+    "-Distros" archlinux ubuntu debian centos fedora freebsd netbsd
     "-Utilities" clonezilla gparted tool reboot)
 
 PXE_LOCAL_ROOT=/srv/pxe
