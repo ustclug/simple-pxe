@@ -1,12 +1,16 @@
 #!/bin/sh
+set -e
 
 export PATH=/rescue:/tmp
 
-mount_tmpfs tmpfs /tmp
-mount_tmpfs tmpfs /etc
-mount_tmpfs tmpfs /var
+## Prepare RW paths {{{{
+mount -t tmpfs -o union tmpfs /etc
+mount -t tmpfs tmpfs /tmp
+mount -t tmpfs tmpfs /var
 mkdir -p /var/run /var/db
+## }}}
 
+## Extract files from official miniroot.fs {{{{
 bzcat /miniroot.fs.bz2 > /tmp/miniroot.fs
 vnconfig vnd0 /tmp/miniroot.fs
 
@@ -19,12 +23,31 @@ cp -Rp /tmp/mnt/etc/* /etc
 umount /tmp/mnt
 vnconfig -u vnd0
 rm /tmp/miniroot.fs
+## }}}
+
+## DHCP, mount NFS and mount ISO {{{
+new_root="/tmp/newroot"
 
 dhcpcd -w -b -q -c /dev/null
 mount_nfs "${nfs_path}" /tmp/mnt
 
 vnconfig -r vnd0 /tmp/mnt/cd.iso
-mkdir /tmp/newroot
-mount_cd9660 /dev/vnd0a /tmp/newroot
+mkdir "${new_root}"
+mount_cd9660 /dev/vnd0a "${new_root}"
+## }}}
 
-sysctl -w init.root=/tmp/newroot
+## NetBSD 7.x Fix {{{
+if ! [ -d "${new_root}/rescue" ]; then
+  mount_tmpfs -o union tmpfs "${new_root}"
+  mkdir "${new_root}/rescue"
+  cp -p /rescue/sh "${new_root}/rescue"
+fi
+
+if ! [ -e "${new_root}/dev/console" ]; then
+  mount_tmpfs tmpfs "${new_root}/dev"
+  cp -p /dev/MAKEDEV "${new_root}/dev"
+  chroot "${new_root}" /rescue/sh -c 'cd /dev && ./MAKEDEV all'
+fi
+## }}}
+
+sysctl -w init.root="${new_root}"
