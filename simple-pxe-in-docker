@@ -1,0 +1,14 @@
+#!/bin/bash
+
+source config.local
+
+docker run --rm -i \
+    -v "$PXE_LOCAL_ROOT:$PXE_LOCAL_ROOT" \
+    -v "$PWD:/simple-pxe:ro" \
+    -e DEBIAN_FRONTEND=noninteractive \
+    ustclug/ubuntu:latest \
+    /bin/bash -x -e <<EOF
+apt-get update
+apt-get install -y --no-install-recommends binutils curl fatcat bsdtar ca-certificates genisoimage subversion
+cd /simple-pxe && ./simple-pxe prepare && ./simple-pxe menu
+EOF
