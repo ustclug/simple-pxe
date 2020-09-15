@@ -30,7 +30,7 @@ while read -r folder; do
 		"Ubuntu ${version} (${codename}) ${variant} LiveCD" \
 		"${GRUB_PATH}/${kernels[0]}" \
 		"${GRUB_PATH}/${initrds[0]}" \
-		"boot=casper netboot=nfs nfsroot=${PXE_NFS_HOST}:${NFS_PATH}/${folder} locale=zh_CN \${SP_UBUNTU_ROOTFS}"
+		"boot=casper ip=dhcp netboot=nfs nfsroot=${PXE_NFS_HOST}:${NFS_PATH}/${folder} locale=zh_CN \${SP_UBUNTU_ROOTFS}"
 	echo "fi"
 done < <(ls | sort -t_ -k2,2r -k3)
 
