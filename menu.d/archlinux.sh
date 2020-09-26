@@ -16,7 +16,7 @@ while read -r version; do
 	bootdir="${GRUB_PATH}/${version}/arch/boot"
 	grub_linux_entry \
 		"Arch Linux (${version})" \
-		"${bootdir}/x86_64/vmlinuz" \
+		"${bootdir}/x86_64/vmlinuz-linux" \
 		"${bootdir}/x86_64/archiso.img ${bootdir}/amd_ucode.img ${bootdir}/intel_ucode.img" \
 		"ip=dhcp archisobasedir=arch archiso_nfs_srv=${PXE_NFS_HOST}:${NFS_PATH}/${version} copytoram=\$SP_ARCH_COPYTORAM mirror=\$SP_ARCH_MIRROR"
 done < <(ls | sort -ru)
