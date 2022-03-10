@@ -9,6 +9,6 @@ docker run --rm -i \
     ustclug/ubuntu:latest \
     /bin/bash -x -e <<EOF
 apt-get update
-apt-get install -y --no-install-recommends binutils curl fatcat bsdtar ca-certificates genisoimage subversion
+apt-get install -y --no-install-recommends binutils curl fatcat libarchive-tools ca-certificates genisoimage subversion
 cd /simple-pxe && ./simple-pxe prepare && ./simple-pxe menu
 EOF
