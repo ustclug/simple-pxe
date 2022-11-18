@@ -7,7 +7,8 @@ cd "${LOCAL_PATH}" || exit 1
 
 grub_option SP_DEBIAN_ARCH Architecture \
 	amd64 amd64 "For most modern PCs" \
-	i386  i386  "For very old PCs"
+	i386  i386  "For very old PCs" \
+	arm64 arm64 "For ARM64 / AARCH64 devices"
 
 IFS=' ' read -r -a mirrors <<< "${DEBIAN_MIRROR_BACKUP}"
 grub_mirror_selector SP_DEBIAN_MIRROR "${DEBIAN_MIRROR}" "${mirrors[@]}"

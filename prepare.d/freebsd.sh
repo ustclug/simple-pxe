@@ -4,6 +4,8 @@
 source functions.sh
 cd "${LOCAL_PATH}" || exit 1
 
+# TODO: Add arm64 arch
+
 count=0
 while read -r ver; do
 	for arch in amd64 i386; do
