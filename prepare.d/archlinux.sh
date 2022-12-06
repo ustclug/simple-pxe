@@ -4,7 +4,7 @@
 source functions.sh
 cd "${LOCAL_PATH}" || exit 1
 
-text=$(curl -s "${ARCHLINUX_MIRROR}/iso/latest/md5sums.txt")
+text=$(curl -s "${ARCHLINUX_MIRROR}/iso/latest/sha256sums.txt")
 
 if [[ "${text}" =~ archlinux-([0-9.]+)-x86_64.iso ]]; then
 	iso_file="${BASH_REMATCH[0]}"
