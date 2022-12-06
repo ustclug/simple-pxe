@@ -12,7 +12,7 @@ DEBIAN_CD_MIRROR="${mirror_base}/debian-cd"
 DEBIAN_MIRROR="${mirror_base}/debian"
 FEDORA_MIRROR="${mirror_base}/fedora"
 FREEBSD_MIRROR="${mirror_base}/freebsd"
-NETBSD_MIRROR="https://mirrors.tuna.tsinghua.edu.cn/NetBSD"
+NETBSD_MIRROR="https://mirrors.bfsu.edu.cn/NetBSD"
 UBUNTU_MIRROR="${mirror_base}/ubuntu"
 UBUNTU_RELEASES_MIRROR="${mirror_base}/ubuntu-releases"
 
