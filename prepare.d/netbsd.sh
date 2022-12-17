@@ -36,7 +36,15 @@ while read -r ver; do
 				mkdir miniroot
 				bsdtar -C miniroot -xf cd.iso \
 					"netbsd" "${arch}/" "dev/MAKEDEV"
-				bsdtar -C miniroot -xf "miniroot/${arch}/binary/sets/base.tgz" rescue/
+				
+				if [[ -f "miniroot/${arch}/binary/sets/base.tgz" ]]; then
+					bsdtar -C miniroot -xf "miniroot/${arch}/binary/sets/base.tgz" rescue/
+				elif [[ -f "miniroot/${arch}/binary/sets/base.tar.xz" ]]; then
+					bsdtar -C miniroot -Jxf "miniroot/${arch}/binary/sets/base.tar.xz" rescue/
+				else
+					echo 'Neither base.{tgz,tar.xz} is found' >&2
+				fi
+
 				mkdir miniroot/{etc,tmp,var}
 				mv "miniroot/${arch}/binary/kernel/netbsd-INSTALL.gz" .
 				mv "miniroot/netbsd" .
