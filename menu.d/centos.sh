@@ -6,8 +6,9 @@ source functions.sh
 cd "${LOCAL_PATH}" || exit 1
 
 grub_option SP_CENTOS_ARCH Architecture \
-	x86_64 x86_64 "For most modern PCs" \
-	i386   i386  "For very old PCs"
+	x86_64  x86_64 "For most modern PCs" \
+	i386    i386  "For very old PCs" \
+	aarch64 aarch64 "For ARM64 / AARCH64 devices"
 
 IFS=' ' read -r -a mirrors <<< "${CENTOS_MIRROR_BACKUP}"
 grub_mirror_selector SP_CENTOS_MIRROR "${CENTOS_MIRROR}" "${mirrors[@]}"
