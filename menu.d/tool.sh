@@ -34,9 +34,9 @@ do_memtest() {
 
 do_uefishell() {
 	cd "${PXE_LOCAL_ROOT}/archlinux" || return 1
-	local latest=$(ls | sort -ru)
+	local latest=$(ls | sort -ru | head -n1)
 
-	efipath="${latest}/EFI/BOOT/BOOTx64.efi"
+	efipath="${latest}/EFI/BOOT/BOOTx64.EFI"
 	if [[ -f "${efipath}" ]]; then
 		relpath=$(realpath --relative-to="${PXE_LOCAL_ROOT}" "${efipath}")
 		cat <<- EOF
