@@ -6,9 +6,9 @@ docker run --rm -i \
     -v "$PXE_LOCAL_ROOT:$PXE_LOCAL_ROOT" \
     -v "$PWD:/simple-pxe:ro" \
     -e DEBIAN_FRONTEND=noninteractive \
-    ustclug/ubuntu:latest \
+    ustclug/ubuntu:24.04 \
     /bin/bash -x -e <<EOF
 apt-get update
-apt-get install -y --no-install-recommends binutils curl fatcat libarchive-tools ca-certificates genisoimage subversion
+apt-get install -y --no-install-recommends binutils curl fatcat libarchive-tools ca-certificates genisoimage subversion bzip2
 cd /simple-pxe && ./simple-pxe prepare && ./simple-pxe menu
 EOF
