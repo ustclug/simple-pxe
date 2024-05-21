@@ -7,12 +7,12 @@ cd "${LOCAL_PATH}" || exit 1
 temp[rlist]=$(mktemp)
 
 count=0
-for ((version=27; version<40; version++)); do
+for ((version=38; version<100; version++)); do
 	url_base="${FEDORA_MIRROR}/releases/${version}"
 	url_check "${url_base}/" 403 || break
 	url=""
 
-	for ((r=0; r<10; r++)); do
+	for ((r=0; r<20; r++)); do
 		rev="1.${r}"
 		_url="${url_base}/Workstation/x86_64/iso/Fedora-Workstation-Live-x86_64-${version}-${rev}.iso"
 		url_check "${_url}" || continue

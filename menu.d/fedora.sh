@@ -14,8 +14,8 @@ while read -r folder; do
 	IFS='_' read -r variant iso_type version rev <<< "${folder}"
 
 	# Check LiveCD kernel existence
-	kernels=("${folder}/isolinux/vmlinuz"*)
-	initrds=("${folder}/isolinux/initrd"*)
+	kernels=("${folder}/images/pxeboot/vmlinuz"*)
+	initrds=("${folder}/images/pxeboot/initrd"*)
 	image="${folder}/LiveOS/squashfs.img"
 	[[ -f "${kernels[0]}" && -f "${initrds[0]}" && -f "${image}" ]] || continue
 
