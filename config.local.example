@@ -1,12 +1,10 @@
-PXE_PREPARE=(archlinux ubuntu debian rocky fedora freebsd netbsd clonezilla gparted memtest)
+PXE_PREPARE=(archlinux ubuntu debian rocky fedora clonezilla gparted memtest)
 PXE_MENUS=(
-    "-Distros" archlinux ubuntu debian rocky fedora freebsd netbsd
+    "-Distros" archlinux ubuntu debian rocky fedora
     "-Utilities" clonezilla gparted tool reboot)
 
 PXE_LOCAL_ROOT=/srv/pxe
 PXE_HTTP_ROOT=http://10.123.123.1/pxe
-PXE_NFS_HOST=10.123.123.1
-PXE_NFS_ROOT=/srv/pxe
 
 PXE_TITLE="USTC Network Boot Service (http://pxe.ustc.edu.cn/)"
 PXE_INTRO="

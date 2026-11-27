@@ -2,8 +2,8 @@
 
 source functions.sh
 
-export {ARCHLINUX,ROCKY,DEBIAN_CD,DEBIAN,FEDORA,FREEBSD,NETBSD,UBUNTU,UBUNTU_RELEASES}_MIRROR
-export {ARCHLINUX,ROCKY,DEBIAN_CD,DEBIAN,FEDORA,FREEBSD,NETBSD,UBUNTU,UBUNTU_RELEASES}_MIRROR_BACKUP
+export {ARCHLINUX,ROCKY,DEBIAN_CD,DEBIAN,FEDORA,UBUNTU,UBUNTU_RELEASES}_MIRROR
+export {ARCHLINUX,ROCKY,DEBIAN_CD,DEBIAN,FEDORA,UBUNTU,UBUNTU_RELEASES}_MIRROR_BACKUP
 
 mirror_base="http://mirrors.ustc.edu.cn"
 ARCHLINUX_MIRROR="${mirror_base}/archlinux"
@@ -11,27 +11,22 @@ ROCKY_MIRROR="${mirror_base}/rocky"
 DEBIAN_CD_MIRROR="${mirror_base}/debian-cd"
 DEBIAN_MIRROR="${mirror_base}/debian"
 FEDORA_MIRROR="${mirror_base}/fedora"
-FREEBSD_MIRROR="${mirror_base}/freebsd"
-NETBSD_MIRROR="https://mirrors.bfsu.edu.cn/NetBSD"
 UBUNTU_MIRROR="${mirror_base}/ubuntu"
 UBUNTU_RELEASES_MIRROR="${mirror_base}/ubuntu-releases"
 
-export PXE_LOCAL_ROOT PXE_HTTP_ROOT PXE_NFS_HOST PXE_NFS_ROOT
+export PXE_LOCAL_ROOT PXE_HTTP_ROOT
 declare -a PXE_PREPARE PXE_MENUS
 source config.local
 
 validate_config() {
 	[[ -d "${PXE_LOCAL_ROOT}" ]] || panick "\$PXE_LOCAL_ROOT is not a valid directory"
 	[[ -n "${PXE_HTTP_ROOT}" ]] || panick "Please set \$PXE_HTTP_ROOT"
-	[[ -n "${PXE_NFS_HOST}" ]] || panick "Please set \$PXE_NFS_HOST"
-	[[ -n "${PXE_NFS_ROOT}" ]] || panick "Please set \$PXE_NFS_ROOT"
 }
 
 parse_header() {
 	# PXE_LOCAL_ROOT ->  LOCAL_PATH
 	# PXE_HTTP_ROOT  ->  HTTP_PATH
 	#                    GRUB_PATH
-	# PXE_NFS_ROOT   ->  NFS_PATH
 
 	unset header && declare -Ag header
 	local fullpath filename key value
@@ -54,11 +49,11 @@ parse_header() {
 	LOCAL_PATH="${PXE_LOCAL_ROOT}/${header[root]}"
 	HTTP_PATH="${PXE_HTTP_ROOT}/${header[root]}"
 	GRUB_PATH=$(url2grub "${HTTP_PATH}")
-	NFS_PATH="${PXE_NFS_ROOT}/${header[root]}"
-	export ASSET_PATH LOCAL_PATH HTTP_PATH GRUB_PATH NFS_PATH
+	export ASSET_PATH LOCAL_PATH HTTP_PATH GRUB_PATH
 }
 
 do_prepare() {
+	local status=0
 	for item in "${PXE_PREPARE[@]}"; do
 		script="prepare.d/${item}.sh"
 
@@ -66,11 +61,14 @@ do_prepare() {
 			echo "Run ${script}..."
 			parse_header "${script}"
 			mkdir -p "${LOCAL_PATH}"
-			bash "${script}"
+			bash "${script}" || status=1
 		fi
 	done
 
-	echo "Prepare OK"
+	if (( status == 0 )); then
+		echo "Prepare OK"
+	fi
+	return "${status}"
 }
 
 do_menu() {
@@ -121,25 +119,25 @@ do_menu() {
 		local menu_file="${menu_dir}/${item}.menu"
 		export PXE_MENU_URL="${menu_url}/${item}.menu"
 
-		if [[ -f "${script}" ]]; then
-			parse_header "${script}"
-			echo "Generating menu item '${header[menu]}'..."
+		[[ -f "${script}" ]] || continue
 
-			id="do_menu_${item}"
-			temp[${id}]=$(mktemp)
+		parse_header "${script}"
+		echo "Generating menu item '${header[menu]}'..."
 
-			cat >> "${temp[${id}]}" <<- EOF
-				menuentry '..' {
-				  configfile "${menu_url}/root.menu"
-				}
-			EOF
+		id="do_menu_${item}"
+		temp[${id}]=$(mktemp)
 
-			if bash "${script}" >> "${temp[${id}]}"; then
-				chmod 644 "${temp[${id}]}"
-				mv "${temp[${id}]}" "${menu_file}"
-			else
-				echo "${item}: failed to generate menu"
-			fi
+		cat >> "${temp[${id}]}" <<- EOF
+			menuentry '..' {
+			  configfile "${menu_url}/root.menu"
+			}
+		EOF
+
+		if bash "${script}" >> "${temp[${id}]}"; then
+			chmod 644 "${temp[${id}]}"
+			mv "${temp[${id}]}" "${menu_file}"
+		else
+			echo "${item}: failed to generate menu"
 		fi
 
 		if [[ -f "${menu_file}" ]]; then

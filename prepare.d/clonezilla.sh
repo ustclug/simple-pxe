@@ -34,7 +34,7 @@ case "$(basename -- "$0")" in
 	clonezilla.sh)
 		prepare \
 			"clonezilla-live-([0-9]{8}-[a-z]+)-(amd64|i386).zip" \
-			"https://osdn.net/dl/clonezilla" \
+			"https://downloads.sourceforge.net/clonezilla" \
 			"https://clonezilla.org/downloads/alternative/data/CHECKSUMS.TXT"
 		;;
 	gparted.sh)

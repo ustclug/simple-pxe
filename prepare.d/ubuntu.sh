@@ -1,6 +1,7 @@
 #!/bin/bash
 #root: ubuntu
 
+set -eo pipefail
 source functions.sh
 cd "${LOCAL_PATH}" || exit 1
 
@@ -12,44 +13,42 @@ cat > "${temp[preseed]}" <<- EOF && install -m644 "${temp[preseed]}" preseed.txt
 	d-i mirror/http/proxy string
 EOF
 
-# Update Ubuntu release list
-regex="Ubuntu ([0-9]{2}\.[0-9]{2})(\.[0-9]+)? (LTS )?\(([A-Z][a-z]+) [A-Z][a-z]+\)"
-temp[rlist]=$(mktemp)
+# The mirror publishes separate Simple Streams catalogs for desktop and server ISOs.
+temp[work]=$(mktemp -d .prepare.XXXXXXXX)
+work=${temp[work]}
+for product in ubuntu ubuntu-server; do
+	curl -fLsS "${UBUNTU_RELEASES_MIRROR}/streams/v1/com.ubuntu.releases:${product}.json" -o "${work}/${product}.json"
+done
 
-grep_web "${UBUNTU_RELEASES_MIRROR}/HEADER.html" "${regex}" | while read -r line; do
-	if [[ "${line}" =~ ${regex} ]]; then
-		version="${BASH_REMATCH[1]}"
-		full_version="${version}${BASH_REMATCH[2]}"
-		[[ "${BASH_REMATCH[3]}" != "LTS " ]]
-		support=$?
-		codename="${BASH_REMATCH[4],,}"
-		echo -e "${version}\t${full_version}\t${support}\t${codename}"
+jq -er '
+	.products[] | select(.image_type == "desktop" or .image_type == "live-server" or .image_type == "server")
+	| [.version, (.release_title | split(" ")[0]), (if .release_title | endswith(" LTS") then 1 else 0 end), .release]
+	| @tsv
+' "${work}"/ubuntu*.json | sort -u -k1,1Vr > "${work}/release-list"
+mv "${work}/release-list" release-list
+
+jq -er '
+	.products[] | select(.image_type == "desktop" or .image_type == "live-server")
+	| select(.arch == "amd64" or .arch == "i386")
+	| select((.version | split(".")[0] | tonumber) >= 20)
+	| (.versions | to_entries | max_by(.key | split(".") | map(tonumber))) as $latest
+	| [.release, $latest.key, .image_type, .arch, $latest.value.items.iso.path, $latest.value.items.iso.sha256]
+	| @tsv
+' "${work}"/ubuntu*.json > "${work}/images"
+
+while read -r codename version variant arch path sha256; do
+	target="${codename}_${version}_${variant}_${arch}"
+	if [[ -d "${target}/http" ]]; then
+		continue
 	fi
-done > "${temp[rlist]}"
-
-if [[ "${PIPESTATUS[0]}" == 0 && "$?" == 0 ]]; then
-	mv "${temp[rlist]}" "release-list"
-fi
-
-# Update LiveCD
-while read -r version full_version support codename; do
-	for arch in amd64 i386; do
-		# Only desktop/live-server variants support casper boot
-		for variant in desktop live-server; do
-			iso="ubuntu-${full_version}-${variant}-${arch}.iso"
-			url="${UBUNTU_RELEASES_MIRROR}/${version}/${iso}"
-			target="${codename}_${full_version}_${variant}_${arch}"
-
-			url_check "${url}" || continue
-
-			if [[ -d "${target}" ]]; then
-				echo "Already exists: ${target}"
-			else
-				echo "Extracting ${url} to ${target}"
-				net_extract "${url}" "${target}"
-			fi
-		done
-	done
-done < "release-list"
+	echo "Preparing ${path}"
+	mkdir "${work}/http"
+	iso="${work}/http/install.iso"
+	curl -fLsS "${UBUNTU_RELEASES_MIRROR}/${path}" -o "${iso}"
+	printf '%s  %s\n' "${sha256}" "${iso}" | sha256sum --check
+	bsdtar -C "${work}/http" -xf "${iso}" casper/vmlinuz casper/initrd
+	mkdir -p "${target}"
+	mv -T "${work}/http" "${target}/http"
+done < "${work}/images"
 
 # vim: set ts=4 sw=4 sts=4 noexpandtab nosta:
